@@ -28,7 +28,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 
 # Application definition
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "progress",
     "feedback",
     "receptive.apps.ReceptiveConfig",
+    "management",
 ]
 
 MIDDLEWARE = [
@@ -132,9 +133,24 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==============================================================================
+# AI Grading Configuration (UC-WRI-07)
+# ==============================================================================
+AI_PROVIDER = os.getenv("AI_PROVIDER", "gemini")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+AI_MODEL = os.getenv("AI_MODEL", "gemini-3.8-flash")
+try:
+    AI_API_TIMEOUT = int(os.getenv("AI_API_TIMEOUT", "15"))
+except (ValueError, TypeError):
+    AI_API_TIMEOUT = 15

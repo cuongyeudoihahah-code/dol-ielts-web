@@ -1,0 +1,553 @@
+{% extends "writing/base_writing.html" %}
+
+{% block title %}Danh sách đề luyện Writing{% endblock %}
+
+{% block breadcrumbs %}
+    <span class="separator">/</span>
+    <span class="current">Danh sách bài luyện</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--dol-gray-900);
+        margin-bottom: 6px;
+    }
+
+    .page-description {
+        color: var(--dol-gray-500);
+        font-size: 0.95rem;
+    }
+
+    /* Filter Panel */
+    .filter-card {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-xs);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto;
+        gap: 16px;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .filter-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--dol-gray-700);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-select {
+        width: 100%;
+        padding: 9px 14px;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        background-color: var(--dol-white);
+        color: var(--dol-charcoal);
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .filter-select:focus {
+        border-color: var(--dol-red);
+        box-shadow: 0 0 0 3px rgba(229, 29, 36, 0.15);
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+        background: linear-gradient(135deg, #FFF5F5 0%, #FFFFFF 100%);
+        border: 1px solid #FED7D7;
+        border-radius: var(--radius-lg);
+        padding: 28px 32px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 28px;
+        box-shadow: var(--shadow-xs);
+        transition: box-shadow var(--transition-normal);
+    }
+
+    .hero-banner:hover {
+        box-shadow: var(--shadow-sm);
+    }
+
+    .hero-badge-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: var(--dol-red);
+        color: white;
+        font-size: 0.725rem;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+    }
+
+    .hero-title {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: var(--dol-gray-900);
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+
+    .hero-desc {
+        color: var(--dol-gray-700);
+        font-size: 0.925rem;
+        line-height: 1.6;
+        margin-bottom: 14px;
+        max-width: 680px;
+    }
+
+    .hero-checklist {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        font-size: 0.825rem;
+        color: var(--dol-gray-700);
+        font-weight: 600;
+    }
+
+    .hero-checklist span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .hero-check-icon {
+        color: var(--dol-green);
+        font-weight: 800;
+    }
+
+    .hero-img-wrap {
+        flex-shrink: 0;
+        width: 270px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-img {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        object-fit: contain;
+    }
+
+    /* Prompts Grid */
+    .prompts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+    }
+
+    .prompt-card {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow-xs);
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+        position: relative;
+    }
+
+    .prompt-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--dol-red);
+    }
+
+    .prompt-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .prompt-badges {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .prompt-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+
+    .prompt-thumb-container {
+        margin: 10px 0 14px 0;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--dol-gray-300);
+        background-color: #FAFAFA;
+        height: 135px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .prompt-task2-banner {
+        margin: 10px 0 14px 0;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--dol-gray-200);
+        background: linear-gradient(135deg, #F8FAFC 0%, #EDF2F7 100%);
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 60px;
+        transition: border-color var(--transition-fast);
+    }
+
+    .prompt-card:hover .prompt-task2-banner {
+        border-color: rgba(225, 39, 39, 0.35);
+    }
+
+    .task2-banner-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        line-height: 1;
+    }
+
+    .task2-banner-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .task2-banner-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        letter-spacing: -0.01em;
+    }
+
+    .task2-banner-sub {
+        font-size: 0.75rem;
+        color: var(--dol-gray-600);
+    }
+
+    .prompt-thumb-img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform var(--transition-fast);
+    }
+
+    .prompt-card:hover .prompt-thumb-img {
+        transform: scale(1.02);
+    }
+
+    .prompt-thumb-tag {
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        background: rgba(26, 32, 44, 0.75);
+        color: white;
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: var(--radius-sm);
+        backdrop-filter: blur(2px);
+    }
+
+    .prompt-snippet {
+        color: var(--dol-gray-700);
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .prompt-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid var(--dol-gray-100);
+    }
+
+    .prompt-meta {
+        font-size: 0.8rem;
+        color: var(--dol-gray-500);
+        font-weight: 500;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        background-color: var(--dol-white);
+        border: 2px dashed var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        padding: 60px 24px;
+        margin: 20px 0;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .empty-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        margin-bottom: 8px;
+    }
+
+    .empty-text {
+        color: var(--dol-gray-500);
+        max-width: 460px;
+        margin: 0 auto 20px auto;
+        font-size: 0.925rem;
+    }
+
+    @media (max-width: 860px) {
+        .hero-banner {
+            flex-direction: column;
+            text-align: center;
+            padding: 24px 20px;
+        }
+        .hero-desc {
+            max-width: 100%;
+        }
+        .hero-checklist {
+            justify-content: center;
+        }
+        .hero-img-wrap {
+            width: 100%;
+            max-width: 270px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .prompts-grid {
+            grid-template-columns: 1fr;
+        }
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Hero Banner phương pháp LinearThinking & Đội ngũ giáo viên (Hình 38) -->
+    <section class="hero-banner">
+        <div style="flex: 1;">
+            <div class="hero-badge-tag">
+                <span>⚡ HỆ THỐNG THÔNG MINH LINEARTHINKING</span>
+            </div>
+            <h2 class="hero-title">
+                Luyện Viết Chuẩn Khảo Thí &bull; Đột Phá Tư Duy Tuyến Tính
+            </h2>
+            <p class="hero-desc">
+                Phương pháp tư duy logic từ DOL Đình Lực giúp bạn phát triển ý tưởng mạch lạc, tránh lạc đề. Toàn bộ kho đề thi được tích hợp dàn ý chi tiết, bài mẫu band 8.0+ và chấm điểm tức thì bằng AI chuẩn 4 tiêu chí giám khảo IELTS.
+            </p>
+            <div class="hero-checklist">
+                <span><strong class="hero-check-icon">✓</strong> Đề thi Task 1 có biểu đồ & quy trình</span>
+                <span><strong class="hero-check-icon">✓</strong> Dàn ý & bài mẫu tham khảo chi tiết</span>
+                <span><strong class="hero-check-icon">✓</strong> Chấm AI chuẩn 4 tiêu chí (TA/TR, CC, LR, GRA)</span>
+            </div>
+        </div>
+        <div class="hero-img-wrap">
+            <img src="/static/images/mentors_banner.svg" alt="Đội ngũ Giảng viên 8.5 & 8.0 IELTS tại DOL Đình Lực" class="hero-img">
+        </div>
+    </section>
+
+    <div class="page-header">
+        <h1 class="page-title">Kho Đề Luyện Viết IELTS</h1>
+        <p class="page-description">
+            Rèn luyện kỹ năng IELTS Writing Task 1 & Task 2 với hệ thống đề mẫu chuẩn khảo thí và tài liệu hỗ trợ phương pháp tư duy.
+        </p>
+    </div>
+
+    {% if db_error %}
+        <div class="alert-error" role="alert">
+            <strong>Lỗi hệ thống:</strong> {{ db_error }}
+        </div>
+    {% endif %}
+
+    <!-- Bộ lọc tìm kiếm -->
+    <section class="filter-card" aria-label="Bộ lọc đề thi">
+        <form method="get" action="{% url 'writing:prompt_list' %}" class="filter-form">
+            <!-- Lọc Task Type -->
+            <div class="filter-group">
+                <label for="task_type" class="filter-label">Dạng bài</label>
+                <select name="task_type" id="task_type" class="filter-select">
+                    <option value="">Tất cả dạng bài</option>
+                    {% for key, label in task_type_choices %}
+                        <option value="{{ key }}" {% if selected_task_type == key %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Lọc Trình độ -->
+            <div class="filter-group">
+                <label for="level" class="filter-label">Trình độ</label>
+                <select name="level" id="level" class="filter-select">
+                    <option value="">Tất cả trình độ</option>
+                    {% for key, label in level_choices %}
+                        <option value="{{ key }}" {% if selected_level == key %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Lọc Trạng thái bài làm -->
+            <div class="filter-group">
+                <label for="status" class="filter-label">Trạng thái luyện tập</label>
+                <select name="status" id="status" class="filter-select">
+                    <option value="" {% if not selected_status %}selected{% endif %}>Tất cả trạng thái</option>
+                    <option value="done" {% if selected_status == 'done' %}selected{% endif %}>Đã làm</option>
+                    <option value="not_done" {% if selected_status == 'not_done' %}selected{% endif %}>Chưa làm</option>
+                </select>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Lọc đề</button>
+                {% if selected_task_type or selected_level or selected_status %}
+                    <a href="{% url 'writing:prompt_list' %}" class="btn btn-outline">Đặt lại</a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    <!-- Danh sách đề -->
+    {% if prompts %}
+        <div class="prompts-grid">
+            {% for prompt in prompts %}
+                <article class="prompt-card">
+                    <div>
+                        <div class="prompt-card-top">
+                            <div class="prompt-badges">
+                                {% if prompt.task_type == "TASK_1" %}
+                                    <span class="badge badge-task1">Task 1</span>
+                                {% else %}
+                                    <span class="badge badge-task2">Task 2</span>
+                                {% endif %}
+
+                                {% if prompt.level == "BEGINNER" %}
+                                    <span class="badge badge-beginner">Beginner</span>
+                                {% elif prompt.level == "INTERMEDIATE" %}
+                                    <span class="badge badge-intermediate">Intermediate</span>
+                                {% else %}
+                                    <span class="badge badge-advanced">Advanced</span>
+                                {% endif %}
+
+                                {% if prompt.image_file %}
+                                    <span class="badge" style="background: #EBF8FF; color: #2B6CB0; border: 1px solid #BEE3F8;">📊 Visual</span>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                {% if prompt.is_done %}
+                                    <span class="badge badge-done">✓ Đã làm</span>
+                                {% else %}
+                                    <span class="badge badge-not-done">Chưa làm</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <h2 class="prompt-title">{{ prompt.title }}</h2>
+
+                        {% if prompt.image_file %}
+                            <div class="prompt-thumb-container">
+                                <img src="{{ prompt.image_file }}" alt="Minh họa đề bài: {{ prompt.title }}" class="prompt-thumb-img" loading="lazy" onerror="this.style.display='none'; const t=this.nextElementSibling; if(t) t.style.display='none'; const f=this.parentElement.querySelector('.prompt-thumb-fallback'); if(f) f.style.display='flex';">
+                                <span class="prompt-thumb-tag">
+                                    Đề có biểu đồ / hình ảnh
+                                </span>
+                                <div class="prompt-thumb-fallback" style="display: none; padding: 16px; background: #F8FAFC; border: 1px dashed #CBD5E0; border-radius: 4px; align-items: center; justify-content: center; gap: 6px; font-size: 0.82rem; color: #4A5568;">
+                                    <span>📊 Đề bài trực quan có biểu đồ số liệu</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="prompt-task2-banner" aria-hidden="true">
+                                <span class="task2-banner-icon">✍️</span>
+                                <div class="task2-banner-text">
+                                    <span class="task2-banner-title">IELTS Academic Task 2 &bull; Nghị luận</span>
+                                    <span class="task2-banner-sub">Tư duy Tuyến tính (Linearthinking) &bull; Chuẩn 250+ từ</span>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <p class="prompt-snippet">{{ prompt.prompt_text }}</p>
+                    </div>
+
+                    <div class="prompt-card-footer">
+                        <span class="prompt-meta">
+                            {% if prompt.task_type == "TASK_1" %}
+                                Chuẩn: 150+ từ
+                            {% else %}
+                                Chuẩn: 250+ từ
+                            {% endif %}
+                        </span>
+                        <a href="{% url 'writing:prompt_detail' prompt.id %}" class="btn btn-primary">
+                            {% if prompt.is_done %}Luyện lại{% else %}Luyện tập{% endif %} →
+                        </a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        {% if not db_error %}
+            <!-- Trạng thái lọc không có kết quả (Hình 39) -->
+            <div class="empty-state" role="status">
+                <span class="empty-icon" aria-hidden="true">🔍</span>
+                <h3 class="empty-title">Không tìm thấy bài luyện phù hợp</h3>
+                <p class="empty-text">
+                    Không có đề bài luyện viết nào khớp với tiêu chí lọc hiện tại của bạn. Hãy thử thay đổi bộ lọc hoặc xem tất cả đề bài.
+                </p>
+                <a href="{% url 'writing:prompt_list' %}" class="btn btn-primary">Xem tất cả bài luyện</a>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}

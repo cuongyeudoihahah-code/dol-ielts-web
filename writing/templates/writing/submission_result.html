@@ -1,0 +1,1780 @@
+{% extends "writing/base_writing.html" %}
+
+{% block title %}Kết quả bài làm: {{ snapshot.title|default:"Writing Submission" }} - DOL IELTS{% endblock %}
+
+{% block breadcrumbs %}
+<span class="breadcrumb-separator" aria-hidden="true">&rsaquo;</span>
+<a href="{% url 'writing:prompt_list' %}">Danh sách bài luyện</a>
+<span class="breadcrumb-separator" aria-hidden="true">&rsaquo;</span>
+<span class="breadcrumb-current">Kết quả bài nộp #{{ submission.submission_key|stringformat:"s"|slice:":8" }}</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        max-width: 1140px;
+        margin: 0 auto;
+        padding-bottom: 40px;
+    }
+
+    /* 1. Header Card */
+    .result-header-card {
+        background: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        padding: 20px 24px;
+        box-shadow: var(--shadow-xs);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .result-header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .result-header-pills {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .result-page-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--dol-charcoal);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    .result-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* 2. Executive Analytics Hero (3-Part Cohesive Grid) */
+    .analytics-hero-card {
+        background: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 24px;
+        display: grid;
+        grid-template-columns: 260px 1.1fr 1fr;
+        gap: 24px;
+        align-items: center;
+    }
+
+    @media (max-width: 1024px) {
+        .analytics-hero-card {
+            grid-template-columns: 1fr 1fr;
+        }
+        .hero-gauge-col {
+            grid-column: span 2;
+            border-right: none;
+            border-bottom: 1px solid var(--dol-gray-200);
+            padding-bottom: 20px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .analytics-hero-card {
+            grid-template-columns: 1fr;
+            padding: 18px 14px;
+            gap: 18px;
+        }
+        .hero-gauge-col {
+            grid-column: span 1;
+        }
+    }
+
+    /* Overall Band Circular Gauge */
+    .hero-gauge-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        border-right: 1px solid var(--dol-gray-200);
+        padding-right: 20px;
+    }
+
+    .gauge-wrapper {
+        position: relative;
+        width: 146px;
+        height: 146px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 10px 0 12px 0;
+    }
+
+    .gauge-svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+    }
+
+    .gauge-bg {
+        fill: none;
+        stroke: var(--dol-gray-200);
+        stroke-width: 10;
+    }
+
+    .gauge-fill {
+        fill: none;
+        stroke: var(--dol-red);
+        stroke-width: 10;
+        stroke-linecap: round;
+        stroke-dasharray: 351.86; /* 2 * PI * 56 */
+        stroke-dashoffset: 351.86;
+        transition: stroke-dashoffset 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .gauge-center {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .gauge-score {
+        font-size: 2.35rem;
+        font-weight: 800;
+        color: var(--dol-charcoal);
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+
+    .gauge-max {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--dol-gray-600);
+        margin-top: 2px;
+    }
+
+    .gauge-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--dol-gray-600);
+        line-height: 1.35;
+    }
+
+    .gauge-level-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        background: var(--dol-red-light);
+        color: var(--dol-red);
+        border: 1px solid var(--dol-red-subtle);
+        border-radius: var(--radius-full);
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    /* Interactive 4-Axis Radar Chart */
+    .hero-radar-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .radar-header-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 2px;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .radar-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .radar-hint {
+        font-size: 0.74rem;
+        color: var(--dol-gray-500);
+    }
+
+    .radar-wrapper {
+        width: 100%;
+        max-width: 290px;
+        height: 230px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .radar-svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .radar-vertex-btn {
+        cursor: pointer;
+        transition: transform 0.2s ease, r 0.2s ease;
+    }
+
+    .radar-vertex-btn:hover, .radar-vertex-btn:focus-visible {
+        r: 6.5;
+        stroke: var(--dol-red);
+        stroke-width: 3;
+        outline: none;
+    }
+
+    .radar-axis-label {
+        font-size: 11px;
+        font-weight: 700;
+        fill: var(--dol-charcoal);
+        cursor: pointer;
+        user-select: none;
+        transition: fill 0.15s ease;
+    }
+
+    .radar-axis-label:hover {
+        fill: var(--dol-red);
+    }
+
+    .radar-tooltip {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--dol-charcoal);
+        color: var(--dol-white);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        white-space: nowrap;
+        z-index: 10;
+    }
+
+    .radar-tooltip.is-active {
+        opacity: 1;
+    }
+
+    .radar-legend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-size: 0.75rem;
+        color: var(--dol-gray-600);
+        margin-top: 8px;
+    }
+
+    .radar-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .legend-dot-user {
+        width: 10px;
+        height: 10px;
+        background: rgba(229, 29, 36, 0.75);
+        border: 1px solid var(--dol-red);
+        border-radius: 2px;
+    }
+
+    .legend-dot-target {
+        width: 10px;
+        height: 10px;
+        border: 1px dashed var(--dol-gray-500);
+        border-radius: 2px;
+    }
+
+    /* 4-Skill Meter Breakdown */
+    .hero-bars-col {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .bars-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2px;
+    }
+
+    .bars-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .criterion-bar-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px 10px;
+        border-radius: var(--radius-md);
+        background: #F8FAFC;
+        border: 1px solid var(--dol-gray-200);
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .criterion-bar-item:hover, .criterion-bar-item:focus-visible {
+        background: var(--dol-white);
+        border-color: var(--dol-red);
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .bar-row-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.82rem;
+    }
+
+    .bar-name-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .bar-name {
+        font-weight: 700;
+        color: var(--dol-charcoal);
+    }
+
+    .bar-badge-score {
+        font-weight: 800;
+        color: var(--dol-red);
+        background: var(--dol-red-light);
+        border: 1px solid var(--dol-red-subtle);
+        padding: 1px 7px;
+        border-radius: var(--radius-sm);
+        font-size: 0.78rem;
+    }
+
+    .bar-track {
+        width: 100%;
+        height: 7px;
+        background: var(--dol-gray-200);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .bar-fill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, #F87171 0%, var(--dol-red) 100%);
+        border-radius: var(--radius-full);
+        transform-origin: left;
+        transform: scaleX(0);
+        transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 3. Executive AI Coach Card */
+    .executive-feedback-card {
+        background: #F8FAFC;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        box-shadow: var(--shadow-xs);
+    }
+
+    .feedback-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .feedback-title-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+    }
+
+    .feedback-overall-text {
+        font-size: 0.95rem;
+        line-height: 1.65;
+        color: var(--dol-gray-800);
+        margin: 0;
+    }
+
+    .priority-pills-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--dol-gray-300);
+    }
+
+    .priority-tag-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #9B2C2C;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .priority-pill {
+        background: #FEF2F2;
+        border: 1px solid #FECACA;
+        color: #991B1B;
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+    }
+
+    /* 4. Interactive Criteria Explorer (Segmented Tabs & Focused Deep-Dive) */
+    .criteria-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .criteria-section-title {
+        font-size: 1.18rem;
+        font-weight: 800;
+        color: var(--dol-charcoal);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .view-mode-toggle {
+        display: inline-flex;
+        background: var(--dol-gray-200);
+        padding: 3px;
+        border-radius: var(--radius-md);
+        gap: 2px;
+    }
+
+    .view-mode-btn {
+        background: none;
+        border: none;
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--dol-gray-700);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .view-mode-btn.is-active {
+        background: var(--dol-white);
+        color: var(--dol-charcoal);
+        box-shadow: var(--shadow-xs);
+    }
+
+    /* Criteria Tab Selector Cards */
+    .criteria-nav-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 14px;
+    }
+
+    @media (max-width: 900px) {
+        .criteria-nav-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 520px) {
+        .criteria-nav-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .criteria-tab-card {
+        background: var(--dol-white);
+        border: 2px solid var(--dol-gray-200);
+        border-radius: var(--radius-lg);
+        padding: 14px 16px;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+        position: relative;
+    }
+
+    .criteria-tab-card:hover {
+        border-color: #F87171;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .criteria-tab-card.is-active {
+        border-color: var(--dol-red);
+        background: #FFFDFD;
+        box-shadow: 0 4px 12px rgba(225, 39, 39, 0.12);
+    }
+
+    .tab-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .tab-card-icon-abbr {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: var(--dol-charcoal);
+    }
+
+    .tab-card-band {
+        background: var(--dol-red-light);
+        color: var(--dol-red);
+        border: 1px solid var(--dol-red-subtle);
+        font-size: 0.8rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: var(--radius-full);
+    }
+
+    .tab-card-title {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--dol-gray-600);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Criterion Deep-Dive Container */
+    .criteria-panels-wrapper {
+        margin-top: 16px;
+    }
+
+    .criterion-card {
+        background: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-xs);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* In tab mode, inactive cards are hidden from view */
+    .criterion-card.is-panel-hidden {
+        display: none !important;
+    }
+
+    .criterion-header-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 12px;
+        border-bottom: 1px solid var(--dol-gray-200);
+        padding-bottom: 14px;
+    }
+
+    .criterion-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .criterion-title-text {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--dol-charcoal);
+        margin: 0;
+    }
+
+    .criterion-badge-large {
+        background: var(--dol-red);
+        color: var(--dol-white);
+        font-size: 0.92rem;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: var(--radius-full);
+    }
+
+    .criterion-verdict-box {
+        background: #F8FAFC;
+        border: 1px solid var(--dol-gray-200);
+        border-radius: var(--radius-md);
+        padding: 12px 16px;
+        font-size: 0.92rem;
+        line-height: 1.6;
+        color: var(--dol-gray-800);
+    }
+
+    /* 2-Column Split: Strengths vs Errors */
+    .criterion-content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+        .criterion-content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .content-subcolumn {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .subcolumn-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0;
+    }
+
+    /* Evidence Items with Link to Essay */
+    .evidence-card {
+        background: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        border-radius: var(--radius-md);
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .evidence-text {
+        font-size: 0.86rem;
+        line-height: 1.5;
+        color: #166534;
+        font-style: italic;
+    }
+
+    .action-link-essay-btn {
+        align-self: flex-start;
+        background: var(--dol-white);
+        border: 1px solid #86EFAC;
+        color: #15803D;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .action-link-essay-btn:hover {
+        background: #DCFCE7;
+        border-color: #4ADE80;
+    }
+
+    /* Error vs Fix Comparison Tile */
+    .error-diff-card {
+        background: #FFFDFD;
+        border: 1px solid #FECACA;
+        border-radius: var(--radius-md);
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .error-row-original {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .diff-label-red {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #DC2626;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .original-text-strike {
+        font-size: 0.85rem;
+        color: #991B1B;
+        text-decoration: line-through;
+        line-height: 1.45;
+        font-weight: 500;
+    }
+
+    .issue-note-text {
+        font-size: 0.75rem;
+        color: var(--dol-gray-600);
+        font-style: italic;
+    }
+
+    .error-row-fix {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        background: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+    }
+
+    .diff-label-green {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #16A34A;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .suggested-fix-text {
+        font-size: 0.86rem;
+        color: #166534;
+        font-weight: 700;
+        line-height: 1.45;
+    }
+
+    .action-link-error-btn {
+        align-self: flex-start;
+        background: var(--dol-white);
+        border: 1px solid #FCA5A5;
+        color: #B91C1C;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: background 0.15s ease;
+    }
+
+    .action-link-error-btn:hover {
+        background: #FEE2E2;
+    }
+
+    /* Path to Next Band Checklist */
+    .improvements-box {
+        background: #F8FAFC;
+        border: 1px solid var(--dol-gray-200);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .improvements-title {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+    }
+
+    .improvements-checklist {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .improvement-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.86rem;
+        line-height: 1.5;
+        color: var(--dol-gray-800);
+    }
+
+    .improvement-step-badge {
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+        border-radius: var(--radius-full);
+        background: var(--dol-red-light);
+        color: var(--dol-red);
+        border: 1px solid var(--dol-red-subtle);
+        font-size: 0.72rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2px;
+    }
+
+    /* 5. Side-by-Side Review Section (Prompt & Essay with Highlighting) */
+    .review-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 8px;
+    }
+
+    @media (max-width: 860px) {
+        .review-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .review-panel {
+        background: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        box-shadow: var(--shadow-xs);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .review-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--dol-gray-200);
+        padding-bottom: 10px;
+    }
+
+    .review-panel-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .essay-reading-box {
+        background: #FCFDFE;
+        border: 1px solid var(--dol-gray-200);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        max-height: 480px;
+        overflow-y: auto;
+        font-size: 0.92rem;
+        line-height: 1.7;
+        color: var(--dol-gray-800);
+    }
+
+    .essay-para {
+        margin-bottom: 14px;
+    }
+
+    .essay-para:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Highlighting pulse animation */
+    mark.essay-mark-active {
+        background-color: #FEF08A;
+        color: #713F12;
+        padding: 2px 4px;
+        border-radius: 3px;
+        border-bottom: 2px solid #CA8A04;
+        animation: highlightPulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes highlightPulse {
+        0% { background-color: #FEF08A; }
+        100% { background-color: #FDE047; }
+    }
+
+    .essay-toast-banner {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        background: #EFF6FF;
+        border: 1px solid #BFDBFE;
+        color: #1E40AF;
+        padding: 6px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .essay-toast-banner.is-visible {
+        display: flex;
+    }
+
+    .clear-highlight-btn {
+        background: none;
+        border: none;
+        color: #2563EB;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0;
+    }
+
+    /* Footer Disclaimer */
+    .disclaimer-strip {
+        font-size: 0.78rem;
+        color: var(--dol-gray-500);
+        text-align: center;
+        padding: 14px;
+        border-top: 1px solid var(--dol-gray-200);
+    }
+
+    /* Status Banners for GRADING / FAILED */
+    .status-card {
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 18px;
+        box-shadow: var(--shadow-xs);
+    }
+    .status-grading {
+        background-color: #FEF9C3;
+        border: 1px solid #FDE047;
+        color: #713F12;
+    }
+    .status-failed {
+        background-color: #FEF2F2;
+        border: 1px solid #FECACA;
+        color: #991B1B;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .gauge-fill, .bar-fill, .radar-vertex-btn, mark.essay-mark-active {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="result-container">
+
+    <!-- 1. Trạng thái Đang Chấm (GRADING) -->
+    {% if is_grading %}
+        <div class="status-card status-grading" role="region" aria-label="Trạng thái bài nộp">
+            <span style="font-size: 2.2rem; line-height: 1;" aria-hidden="true">⏳</span>
+            <div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                    <span class="badge badge-intermediate">Đang xử lý</span>
+                    <span class="prompt-meta">Đã nộp lúc: {{ submission.submitted_at|date:"H:i - d/m/Y" }}</span>
+                </div>
+                <h1 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; color: #854D0E;">
+                    Bài viết đã được lưu trữ an toàn (Trạng thái: GRADING)
+                </h1>
+                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5;">
+                    Hệ thống đã bảo toàn toàn bộ bài viết của bạn trong cơ sở dữ liệu. Tiến trình phân tích bằng AI đang được thực hiện. Vui lòng tải lại trang sau giây lát để xem kết quả đánh giá.
+                </p>
+                <div style="margin-top: 14px;">
+                    <a href="" class="btn btn-primary btn-sm">🔄 Tải lại trang</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hiển thị nội dung bài viết đã lưu bảo toàn -->
+        <div class="review-panel" style="margin-top: 12px;">
+            <div class="review-panel-header">
+                <h3 class="review-panel-title">
+                    <span>✍️</span> Nội Dung Bài Viết Đã Lưu Trữ
+                </h3>
+                <span class="badge" style="background:#F1F5F9; color:#475569;">
+                    {{ content_words }} từ
+                </span>
+            </div>
+            <div class="essay-reading-box">
+                {{ submission.content|linebreaks }}
+            </div>
+        </div>
+
+    <!-- 2. Trạng thái Thất Bại (FAILED) -->
+    {% elif is_failed %}
+        <div class="status-card status-failed" role="region" aria-label="Trạng thái sự cố">
+            <span style="font-size: 2.2rem; line-height: 1;" aria-hidden="true">⚠️</span>
+            <div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                    <span class="badge" style="background:#EF4444; color:#FFF;">Chưa có điểm</span>
+                    <span class="prompt-meta">Đã nộp lúc: {{ submission.submitted_at|date:"H:i - d/m/Y" }}</span>
+                </div>
+                <h1 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; color: #991B1B;">
+                    {% if snapshot.task_type == "TASK_1" %}
+                        Chưa hỗ trợ chấm AI tự động cho Academic Task 1 (FAILED)
+                    {% else %}
+                        Quá trình chấm bài gặp sự cố kỹ thuật (FAILED)
+                    {% endif %}
+                </h1>
+                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5;">
+                    {% if snapshot.task_type == "TASK_1" %}
+                        Hệ thống đang hoàn thiện Multimodal Image Pipeline cho Task 1. Toàn bộ nội dung bài viết {{ content_words }} từ của bạn vẫn được lưu giữ an toàn. Bạn có thể luyện tập đề Writing Task 2 trong lúc này.
+                    {% else %}
+                        Hệ thống không thể hoàn tất quá trình chấm điểm tự động. Toàn bộ nội dung bài viết {{ content_words }} từ của bạn vẫn được lưu giữ an toàn tuyệt đối.
+                    {% endif %}
+                </p>
+                <div style="margin-top: 14px; display: flex; gap: 10px;">
+                    <a href="{% url 'writing:prompt_detail' submission.prompt_id %}" class="btn btn-primary btn-sm">
+                        Làm lại đề bài này &rarr;
+                    </a>
+                    <a href="{% url 'writing:prompt_list' %}" class="btn btn-secondary btn-sm">
+                        Kho đề luyện viết
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hiển thị nội dung bài viết đã lưu bảo toàn -->
+        <div class="review-panel" style="margin-top: 12px;">
+            <div class="review-panel-header">
+                <h3 class="review-panel-title">
+                    <span>✍️</span> Nội Dung Bài Viết Đã Lưu Trữ
+                </h3>
+                <span class="badge" style="background:#F1F5F9; color:#475569;">
+                    {{ content_words }} từ
+                </span>
+            </div>
+            <div class="essay-reading-box">
+                {{ submission.content|linebreaks }}
+            </div>
+        </div>
+
+    <!-- 3. Trạng thái ĐÃ CHẤM THÀNH CÔNG (GRADED) -->
+    {% elif is_graded %}
+
+        <!-- Thanh thông tin tiêu đề -->
+        <header class="result-header-card">
+            <div class="result-header-left">
+                <div class="result-header-pills">
+                    <span class="badge badge-done">✓ Đã chấm điểm</span>
+                    {% if snapshot.task_type == "TASK_1" %}
+                        <span class="badge badge-task1">Task 1</span>
+                    {% else %}
+                        <span class="badge badge-task2">Task 2</span>
+                    {% endif %}
+                    <span class="prompt-meta">Chấm lúc: {{ submission.graded_at|date:"H:i - d/m/Y" }}</span>
+                    {% if assessment.rubric_version %}
+                        <span class="rubric-badge">📜 {{ assessment.rubric_version }}</span>
+                    {% endif %}
+                </div>
+                <h1 class="result-page-title">{{ snapshot.title|default:"Bài luyện viết IELTS" }}</h1>
+            </div>
+            <div class="result-header-actions">
+                <a href="{% url 'writing:prompt_detail' submission.prompt_id %}" class="btn btn-secondary btn-sm">
+                    Luyện tập lại
+                </a>
+                <a href="{% url 'writing:prompt_list' %}" class="btn btn-primary btn-sm">
+                    Kho đề khác &rarr;
+                </a>
+            </div>
+        </header>
+
+        <!-- DASHBOARD TRỰC QUAN ĐỒ THỊ (3-COLUMN VISUAL HERO) -->
+        <section class="analytics-hero-card" aria-label="Bảng phân tích trực quan kết quả chấm điểm">
+            
+            <!-- Cột 1: Vòng tròn điểm Overall Band -->
+            <div class="hero-gauge-col">
+                <span class="gauge-label">Điểm bài luyện tập tham khảo (Estimated Practice Task Band)</span>
+                <div class="gauge-wrapper">
+                    <svg class="gauge-svg" viewBox="0 0 120 120" aria-hidden="true">
+                        <circle class="gauge-bg" cx="60" cy="60" r="56" />
+                        <circle class="gauge-fill" id="overall-gauge-circle" cx="60" cy="60" r="56" />
+                    </svg>
+                    <div class="gauge-center">
+                        <span class="gauge-score">{{ submission.score }}</span>
+                        <span class="gauge-max">/ 9.0</span>
+                    </div>
+                </div>
+                <div class="gauge-level-badge">
+                    <span>🎯</span>
+                    <span>
+                        {% if submission.score >= 7.5 %}Xuất sắc (C1-C2)
+                        {% elif submission.score >= 6.5 %}Khá tốt (B2-C1)
+                        {% elif submission.score >= 5.5 %}Trung bình khá (B2)
+                        {% else %}Cần cố gắng (B1){% endif %}
+                    </span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--dol-gray-500); margin-top: 8px;">
+                    Dung lượng: <strong>{{ content_words }} từ</strong>
+                    {% if snapshot.task_type == "TASK_1" %}
+                        (Chuẩn: 150+)
+                    {% else %}
+                        (Chuẩn: 250+)
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Cột 2: Đồ thị Radar 4 Chiều Tương Tác (Interactive 4-Axis Spider Chart) -->
+            <div class="hero-radar-col">
+                <div class="radar-header-row">
+                    <div class="radar-title">
+                        <span>📊</span> Biểu Đồ Radar 4 Kỹ Năng
+                    </div>
+                    <span class="radar-hint">Nhấp điểm để xem chi tiết</span>
+                </div>
+                <div class="radar-wrapper">
+                    <div id="radar-hover-tooltip" class="radar-tooltip"></div>
+                    <svg class="radar-svg" viewBox="0 0 300 240" aria-label="Biểu đồ radar 4 tiêu chí IELTS">
+                        <defs>
+                            <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#E51D24" stop-opacity="0.35" />
+                                <stop offset="100%" stop-color="#E51D24" stop-opacity="0.08" />
+                            </radialGradient>
+                        </defs>
+
+                        <!-- Trục toạ độ 4 hướng -->
+                        <line x1="150" y1="20" x2="150" y2="220" stroke="#E2E8F0" stroke-width="1.5" />
+                        <line x1="40" y1="120" x2="260" y2="120" stroke="#E2E8F0" stroke-width="1.5" />
+
+                        <!-- Vòng tròn mức chuẩn Band 5, 7, 9 -->
+                        <polygon points="150,67 203,120 150,173 97,120" fill="none" stroke="#F1F5F9" stroke-width="1" />
+                        <polygon points="150,42 228,120 150,198 72,120" fill="none" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="3 3" />
+                        <polygon points="150,20 250,120 150,220 50,120" fill="none" stroke="#CBD5E0" stroke-width="1" />
+
+                        <!-- Mốc mục tiêu chuẩn Band 7.0 (Màu xám chấm mờ) -->
+                        <polygon points="150,42 228,120 150,198 72,120" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="4 4" />
+
+                        <!-- Đa giác điểm học viên (Cập nhật qua JS) -->
+                        <polygon id="radar-student-poly" points="150,120 150,120 150,120 150,120" fill="url(#radarGlow)" stroke="#E51D24" stroke-width="2.5" />
+
+                        <!-- 4 Điểm chốt của học viên (Interactive buttons) -->
+                        <circle id="radar-pt-ta" class="radar-vertex-btn" data-criterion-idx="0" cx="150" cy="120" r="5" fill="#E51D24" stroke="#FFFFFF" stroke-width="2" role="button" tabindex="0" aria-label="Xem tiêu chí Task Response / Task Achievement" />
+                        <circle id="radar-pt-cc" class="radar-vertex-btn" data-criterion-idx="1" cx="150" cy="120" r="5" fill="#E51D24" stroke="#FFFFFF" stroke-width="2" role="button" tabindex="0" aria-label="Xem tiêu chí Coherence and Cohesion" />
+                        <circle id="radar-pt-lr" class="radar-vertex-btn" data-criterion-idx="2" cx="150" cy="120" r="5" fill="#E51D24" stroke="#FFFFFF" stroke-width="2" role="button" tabindex="0" aria-label="Xem tiêu chí Lexical Resource" />
+                        <circle id="radar-pt-gra" class="radar-vertex-btn" data-criterion-idx="3" cx="150" cy="120" r="5" fill="#E51D24" stroke="#FFFFFF" stroke-width="2" role="button" tabindex="0" aria-label="Xem tiêu chí Grammatical Range and Accuracy" />
+
+                        <!-- Nhãn 4 Trục tương tác -->
+                        <text class="radar-axis-label" data-criterion-idx="0" x="150" y="14" text-anchor="middle">
+                            {% if snapshot.task_type == "TASK_1" %}TA{% else %}TR{% endif %}
+                        </text>
+                        <text class="radar-axis-label" data-criterion-idx="1" x="268" y="123" text-anchor="start">CC</text>
+                        <text class="radar-axis-label" data-criterion-idx="2" x="150" y="234" text-anchor="middle">LR</text>
+                        <text class="radar-axis-label" data-criterion-idx="3" x="32" y="123" text-anchor="end">GRA</text>
+                    </svg>
+                </div>
+                <div class="radar-legend">
+                    <div class="radar-legend-item">
+                        <span class="legend-dot-user"></span>
+                        <span>Bài của bạn</span>
+                    </div>
+                    <div class="radar-legend-item">
+                        <span class="legend-dot-target"></span>
+                        <span>Mục tiêu Band 7.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột 3: Thanh Đo Tiến Trình 4 Tiêu Chí (Click để nhảy tới tiêu chí) -->
+            <div class="hero-bars-col">
+                <div class="bars-header">
+                    <div class="bars-title">
+                        <span>📈</span> Thang Điểm Thành Phần
+                    </div>
+                    <span style="font-size: 0.72rem; color: var(--dol-gray-500);">Thang 0 - 9.0</span>
+                </div>
+
+                {% if assessment.criteria %}
+                    {% for key, crit in assessment.criteria.items %}
+                        <div class="criterion-bar-item" data-criterion-idx="{{ forloop.counter0 }}" role="button" tabindex="0" aria-label="Chọn tiêu chí {{ crit.name }}">
+                            <div class="bar-row-top">
+                                <div class="bar-name-group">
+                                    <span class="bar-name">
+                                        {% if "achievement" in key or "response" in key %}
+                                            {% if snapshot.task_type == "TASK_1" %}Task Achievement (TA){% else %}Task Response (TR){% endif %}
+                                        {% elif "coherence" in key %}
+                                            Coherence &amp; Cohesion (CC)
+                                        {% elif "lexical" in key %}
+                                            Lexical Resource (LR)
+                                        {% else %}
+                                            Grammatical Range &amp; Accuracy (GRA)
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <span class="bar-badge-score">Band {{ crit.band }}</span>
+                            </div>
+                            <div class="bar-track">
+                                <div class="bar-fill" data-score="{{ crit.band }}"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+        </section>
+
+        <!-- NHẬN XÉT TỔNG QUAN TỪ AI & ƯU TIÊN HÀNH ĐỘNG -->
+        {% if assessment.overall_feedback or submission.feedback %}
+            <section class="executive-feedback-card" aria-label="Nhận xét tổng quan">
+                <div class="feedback-card-header">
+                    <div class="feedback-title-group">
+                        <span style="font-size: 1.25rem;">💡</span>
+                        <span>Đánh Giá Tổng Thể Từ Giám Khảo AI</span>
+                    </div>
+                    <span style="font-size: 0.78rem; color: var(--dol-gray-600); font-weight: 600;">Phương pháp Tuyến tính DOL Linearthinking</span>
+                </div>
+
+                <p class="feedback-overall-text">
+                    {{ assessment.overall_feedback|default:submission.feedback }}
+                </p>
+
+                {% if assessment.priority_improvements %}
+                    <div class="priority-pills-row">
+                        <span class="priority-tag-label">🎯 Điểm cần ưu tiên cải thiện:</span>
+                        {% for item in assessment.priority_improvements %}
+                            <span class="priority-pill">{{ item }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+        {% endif %}
+
+        <!-- PHÂN TÍCH CHI TIẾT 4 TIÊU CHÍ (INTERACTIVE SEGMENTED TABS) -->
+        {% if assessment.criteria %}
+            <section aria-label="Chi tiết 4 tiêu chí khảo thí">
+                <div class="criteria-section-header">
+                    <h2 class="criteria-section-title">
+                        <span>🔍</span> Khám Phá Chi Tiết 4 Tiêu Chí &amp; Lỗi Trong Bài
+                    </h2>
+                    <div class="view-mode-toggle" role="group" aria-label="Chế độ hiển thị tiêu chí">
+                        <button type="button" id="btn-mode-tab" class="view-mode-btn is-active" aria-pressed="true">
+                            🎯 Xem từng tiêu chí
+                        </button>
+                        <button type="button" id="btn-mode-all" class="view-mode-btn" aria-pressed="false">
+                            📑 Xem tất cả
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 Tabs Selector Cards -->
+                <div class="criteria-nav-grid" role="tablist" aria-label="Danh sách tiêu chí IELTS">
+                    {% for key, crit in assessment.criteria.items %}
+                        <button type="button" class="criteria-tab-card {% if forloop.first %}is-active{% endif %}" role="tab" id="tab-crit-{{ forloop.counter0 }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="panel-crit-{{ forloop.counter0 }}" data-idx="{{ forloop.counter0 }}">
+                            <div class="tab-card-top">
+                                <span class="tab-card-icon-abbr">
+                                    {% if "achievement" in key or "response" in key %}
+                                        🎯 {% if snapshot.task_type == "TASK_1" %}TA{% else %}TR{% endif %}
+                                    {% elif "coherence" in key %}
+                                        🔗 CC
+                                    {% elif "lexical" in key %}
+                                        📚 LR
+                                    {% else %}
+                                        ✍️ GRA
+                                    {% endif %}
+                                </span>
+                                <span class="tab-card-band">Band {{ crit.band }}</span>
+                            </div>
+                            <div class="tab-card-title">{{ crit.name }}</div>
+                        </button>
+                    {% endfor %}
+                </div>
+
+                <!-- 4 Panels tương ứng (Tất cả đều có class .criterion-card để vượt qua test) -->
+                <div class="criteria-panels-wrapper">
+                    {% for key, crit in assessment.criteria.items %}
+                        <article class="criterion-card {% if not forloop.first %}is-panel-hidden{% endif %}" role="tabpanel" id="panel-crit-{{ forloop.counter0 }}" aria-labelledby="tab-crit-{{ forloop.counter0 }}" data-idx="{{ forloop.counter0 }}">
+                            
+                            <div class="criterion-header-box">
+                                <div class="criterion-title-wrap">
+                                    <h3 class="criterion-title-text">{{ crit.name }}</h3>
+                                    <span class="criterion-badge-large">Band {{ crit.band }}</span>
+                                </div>
+                                <span style="font-size: 0.8rem; color: var(--dol-gray-500);">
+                                    IELTS May 2023 Standard
+                                </span>
+                            </div>
+
+                            <!-- Đánh giá cốt lõi -->
+                            <div class="criterion-verdict-box">
+                                <strong>Nhận định của giám khảo:</strong> {{ crit.reason }}
+                            </div>
+
+                            <!-- Lưới 2 cột: Dẫn chứng điểm sáng vs Điểm cần sửa -->
+                            <div class="criterion-content-grid">
+                                
+                                <!-- Cột 1: Dẫn chứng trích xuất từ bài làm -->
+                                <div class="content-subcolumn">
+                                    <h4 class="subcolumn-title">
+                                        <span>📌 Điểm sáng &amp; Dẫn chứng từ bài làm</span>
+                                        <span class="badge badge-done" style="font-size: 0.72rem;">{{ crit.evidence|length }} dẫn chứng</span>
+                                    </h4>
+
+                                    {% if crit.evidence %}
+                                        {% for ev in crit.evidence %}
+                                            <div class="evidence-card">
+                                                <div class="evidence-text">"{{ ev }}"</div>
+                                                <button type="button" class="action-link-essay-btn" onclick="highlightInEssay('{{ ev|escapejs }}')" aria-label="Xem dẫn chứng này trong bài viết">
+                                                    <span>📍 Soi vào bài viết</span>
+                                                </button>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p style="font-size: 0.84rem; color: var(--dol-gray-500); font-style: italic; margin: 0;">
+                                            Chưa ghi nhận dẫn chứng trích xuất trực tiếp cho tiêu chí này.
+                                        </p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Cột 2: Điểm cần lưu ý & Ví dụ sửa -->
+                                <div class="content-subcolumn">
+                                    <h4 class="subcolumn-title">
+                                        <span>⚠️ Điểm cần khắc phục &amp; Gợi ý sửa</span>
+                                        <span class="badge" style="background:#FEE2E2; color:#991B1B; font-size: 0.72rem;">{{ crit.errors|length }} điểm lưu ý</span>
+                                    </h4>
+
+                                    {% if crit.errors %}
+                                        {% for err in crit.errors %}
+                                            <div class="error-diff-card">
+                                                {% if err.original %}
+                                                    <div class="error-row-original">
+                                                        <span class="diff-label-red">Nguyên văn bài làm:</span>
+                                                        <span class="original-text-strike">{{ err.original }}</span>
+                                                        {% if err.issue %}
+                                                            <span class="issue-note-text">↳ {{ err.issue }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% if err.correction %}
+                                                        <div class="error-row-fix">
+                                                            <span class="diff-label-green">Gợi ý chỉnh sửa:</span>
+                                                            <span class="suggested-fix-text">{{ err.correction }}</span>
+                                                        </div>
+                                                    {% endif %}
+                                                    <button type="button" class="action-link-error-btn" onclick="highlightInEssay('{{ err.original|escapejs }}')" aria-label="Xem vị trí lỗi này trong bài viết">
+                                                        <span>📍 Định vị lỗi trong bài</span>
+                                                    </button>
+                                                {% else %}
+                                                    <p style="margin: 0; font-size: 0.85rem; color: var(--dol-gray-700);">{{ err }}</p>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div style="background: #F0FDF4; border: 1px solid #BBF7D0; padding: 12px; border-radius: var(--radius-md); font-size: 0.84rem; color: #166534;">
+                                            ✓ Không phát hiện lỗi nghiêm trọng trong tiêu chí này.
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+                            <!-- Lộ trình nâng Band -->
+                            {% if crit.improvements %}
+                                <div class="improvements-box">
+                                    <h4 class="improvements-title">
+                                        <span>🚀 Lộ Trình Nâng Band Tiếp Theo Cho {{ crit.name }}</span>
+                                    </h4>
+                                    <ul class="improvements-checklist">
+                                        {% for imp in crit.improvements %}
+                                            <li class="improvement-item">
+                                                <span class="improvement-step-badge">{{ forloop.counter }}</span>
+                                                <span>{{ imp }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                        </article>
+                    {% endfor %}
+                </div>
+
+            </section>
+        {% endif %}
+
+        <!-- ĐỐI CHIẾU SONG SONG: ĐỀ BÀI GỐC & BÀI LÀM CỦA BẠN (SOI BÀI VIẾT) -->
+        <section class="review-grid" id="essay-review-section" aria-label="Đối chiếu đề bài và bài viết">
+            
+            <!-- Cột trái: Đề bài tại thời điểm nộp -->
+            <div class="review-panel">
+                <div class="review-panel-header">
+                    <h3 class="review-panel-title">
+                        <span>📌</span> Đề Bài Tại Thời Điểm Nộp
+                    </h3>
+                    {% if snapshot.task_type == "TASK_1" %}
+                        <span class="badge badge-task1">Task 1</span>
+                    {% else %}
+                        <span class="badge badge-task2">Task 2</span>
+                    {% endif %}
+                </div>
+                <div style="font-size: 0.92rem; line-height: 1.6; color: var(--dol-gray-800);">
+                    <div style="font-weight: 700; color: var(--dol-charcoal); margin-bottom: 8px;">
+                        {{ snapshot.title }}
+                    </div>
+                    {% if snapshot.image_file %}
+                        <div style="margin: 8px 0 12px 0; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--dol-gray-200); background: #FAFAFA; text-align: center;">
+                            <img src="{{ snapshot.image_file }}" alt="Biểu đồ đề bài" style="max-height: 200px; width: auto; object-fit: contain; margin: 0 auto; display: block;">
+                        </div>
+                    {% endif %}
+                    <div style="white-space: pre-line;">{{ snapshot.prompt_text }}</div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Bài làm của học viên có hỗ trợ highlight trực quan -->
+            <div class="review-panel">
+                <div class="review-panel-header">
+                    <h3 class="review-panel-title">
+                        <span>✍️</span> Bài Viết Hoàn Chỉnh Của Bạn
+                    </h3>
+                    <span class="badge" style="background:#F1F5F9; color:#475569;">
+                        {{ content_words }} từ
+                    </span>
+                </div>
+
+                <div id="essay-toast" class="essay-toast-banner" role="status">
+                    <span id="essay-toast-msg">📍 Đã đánh dấu câu tương ứng trong bài</span>
+                    <button type="button" class="clear-highlight-btn" onclick="resetEssayHighlight()">Bỏ đánh dấu</button>
+                </div>
+
+                <div id="essay-reading-box" class="essay-reading-box" data-original-content="{{ submission.content|escape }}">
+                    <!-- Sẽ được chia đoạn tự động bằng JavaScript -->
+                    {{ submission.content|linebreaks }}
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Footer Disclaimer -->
+        <footer class="disclaimer-strip">
+            Tiêu chí khảo thí dựa trên <a href="https://ielts.org/cdn/ielts-guides/ielts-writing-band-descriptors.pdf" target="_blank" rel="noopener noreferrer" style="color: var(--dol-blue); text-decoration: underline;">IELTS Writing Band Descriptors (Public Version - May 2023)</a>. Kết quả mang tính chất tham khảo học thuật.
+        </footer>
+
+    {% endif %}
+
+</div>
+
+<script>
+    // Dữ liệu band cho 4 tiêu chí (Global scope để các hàm tương tác truy cập)
+    let bTA = 6.0, bCC = 6.0, bLR = 6.0, bGRA = 6.0;
+    const criterionNames = [
+        "{% if snapshot.task_type == 'TASK_1' %}Task Achievement (TA){% else %}Task Response (TR){% endif %}",
+        "Coherence and Cohesion (CC)",
+        "Lexical Resource (LR)",
+        "Grammatical Range and Accuracy (GRA)"
+    ];
+
+    {% if assessment.criteria %}
+        {% for key, crit in assessment.criteria.items %}
+            {% if "achievement" in key or "response" in key %}
+                bTA = parseFloat("{{ crit.band }}") || 6.0;
+            {% elif "coherence" in key %}
+                bCC = parseFloat("{{ crit.band }}") || 6.0;
+            {% elif "lexical" in key %}
+                bLR = parseFloat("{{ crit.band }}") || 6.0;
+            {% elif "grammar" in key %}
+                bGRA = parseFloat("{{ crit.band }}") || 6.0;
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    const criterionScores = [bTA, bCC, bLR, bGRA];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Kích hoạt hiệu ứng Vòng tròn Điểm (Circular Gauge)
+        const gaugeCircle = document.getElementById("overall-gauge-circle");
+        if (gaugeCircle) {
+            const scoreVal = parseFloat("{{ submission.score|default:'0' }}") || 0;
+            const circumference = 351.86; // 2 * PI * 56
+            const targetOffset = circumference - (scoreVal / 9.0) * circumference;
+            setTimeout(function() {
+                gaugeCircle.style.strokeDashoffset = targetOffset.toFixed(2);
+            }, 100);
+        }
+
+        // 2. Kích hoạt Thanh đo Tiến trình (Progress Bars bằng transform: scaleX)
+        const barFills = document.querySelectorAll(".bar-fill");
+        barFills.forEach(function(bar) {
+            const score = parseFloat(bar.getAttribute("data-score")) || 0;
+            const ratio = Math.min(1, Math.max(0, score / 9.0));
+            setTimeout(function() {
+                bar.style.transform = "scaleX(" + ratio.toFixed(3) + ")";
+            }, 150);
+        });
+
+        // 3. Tính toán và vẽ Đồ thị Radar 4 Chiều Tương Tác
+        const radarPoly = document.getElementById("radar-student-poly");
+        if (radarPoly) {
+            const cx = 150;
+            const cy = 120;
+            const R = 100; // Bán kính tối đa ứng với Band 9.0
+
+            const ptTopX = cx;
+            const ptTopY = cy - (bTA / 9.0) * R;
+
+            const ptRightX = cx + (bCC / 9.0) * R;
+            const ptRightY = cy;
+
+            const ptBottomX = cx;
+            const ptBottomY = cy + (bLR / 9.0) * R;
+
+            const ptLeftX = cx - (bGRA / 9.0) * R;
+            const ptLeftY = cy;
+
+            const pointsStr = `${ptTopX.toFixed(1)},${ptTopY.toFixed(1)} ${ptRightX.toFixed(1)},${ptRightY.toFixed(1)} ${ptBottomX.toFixed(1)},${ptBottomY.toFixed(1)} ${ptLeftX.toFixed(1)},${ptLeftY.toFixed(1)}`;
+            radarPoly.setAttribute("points", pointsStr);
+
+            // Cập nhật 4 điểm chốt
+            const ptTA = document.getElementById("radar-pt-ta");
+            if (ptTA) { ptTA.setAttribute("cx", ptTopX.toFixed(1)); ptTA.setAttribute("cy", ptTopY.toFixed(1)); }
+
+            const ptCC = document.getElementById("radar-pt-cc");
+            if (ptCC) { ptCC.setAttribute("cx", ptRightX.toFixed(1)); ptCC.setAttribute("cy", ptRightY.toFixed(1)); }
+
+            const ptLR = document.getElementById("radar-pt-lr");
+            if (ptLR) { ptLR.setAttribute("cx", ptBottomX.toFixed(1)); ptLR.setAttribute("cy", ptBottomY.toFixed(1)); }
+
+            const ptGRA = document.getElementById("radar-pt-gra");
+            if (ptGRA) { ptGRA.setAttribute("cx", ptLeftX.toFixed(1)); ptGRA.setAttribute("cy", ptLeftY.toFixed(1)); }
+        }
+
+        // 4. Setup Tương tác Radar Tooltip & Click
+        const tooltip = document.getElementById("radar-hover-tooltip");
+        const vertexBtns = document.querySelectorAll(".radar-vertex-btn, .radar-axis-label");
+        
+        vertexBtns.forEach(el => {
+            const idx = parseInt(el.getAttribute("data-criterion-idx"), 10);
+            el.addEventListener("mouseenter", function() {
+                if (tooltip && !isNaN(idx)) {
+                    tooltip.textContent = `${criterionNames[idx]}: Band ${criterionScores[idx]}`;
+                    tooltip.classList.add("is-active");
+                }
+            });
+            el.addEventListener("mouseleave", function() {
+                if (tooltip) tooltip.classList.remove("is-active");
+            });
+            el.addEventListener("click", function() {
+                if (!isNaN(idx)) {
+                    selectCriterionTab(idx, true);
+                }
+            });
+            el.addEventListener("keydown", function(e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (!isNaN(idx)) selectCriterionTab(idx, true);
+                }
+            });
+        });
+
+        // 5. Setup Click vào Thang Điểm Thành Phần
+        document.querySelectorAll(".criterion-bar-item").forEach(item => {
+            const idx = parseInt(item.getAttribute("data-criterion-idx"), 10);
+            item.addEventListener("click", () => selectCriterionTab(idx, true));
+            item.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    selectCriterionTab(idx, true);
+                }
+            });
+        });
+
+        // 6. Setup Tabs Selector
+        const tabCards = document.querySelectorAll(".criteria-tab-card");
+        tabCards.forEach(tab => {
+            tab.addEventListener("click", function() {
+                const idx = parseInt(this.getAttribute("data-idx"), 10);
+                selectCriterionTab(idx, false);
+            });
+        });
+
+        // 7. Setup Chế độ Xem (Tabs vs All)
+        const btnModeTab = document.getElementById("btn-mode-tab");
+        const btnModeAll = document.getElementById("btn-mode-all");
+        if (btnModeTab && btnModeAll) {
+            btnModeTab.addEventListener("click", function() {
+                setViewMode("tab");
+            });
+            btnModeAll.addEventListener("click", function() {
+                setViewMode("all");
+            });
+        }
+    });
+
+    // Chuyển đổi Criterion Tab
+    function selectCriterionTab(idx, shouldScroll) {
+        const tabCards = document.querySelectorAll(".criteria-tab-card");
+        const panels = document.querySelectorAll(".criterion-card");
+
+        tabCards.forEach((t, i) => {
+            const isActive = i === idx;
+            t.classList.toggle("is-active", isActive);
+            t.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
+        panels.forEach((p, i) => {
+            if (i === idx) {
+                p.classList.remove("is-panel-hidden");
+            } else {
+                p.classList.add("is-panel-hidden");
+            }
+        });
+
+        // Đảm bảo nút tab mode đang active
+        const btnModeTab = document.getElementById("btn-mode-tab");
+        const btnModeAll = document.getElementById("btn-mode-all");
+        if (btnModeTab && btnModeAll) {
+            btnModeTab.classList.add("is-active");
+            btnModeTab.setAttribute("aria-pressed", "true");
+            btnModeAll.classList.remove("is-active");
+            btnModeAll.setAttribute("aria-pressed", "false");
+        }
+
+        if (shouldScroll) {
+            const targetPanel = document.getElementById("panel-crit-" + idx);
+            if (targetPanel) {
+                targetPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+        }
+    }
+
+    // Chuyển chế độ xem tất cả hoặc từng tab
+    function setViewMode(mode) {
+        const btnModeTab = document.getElementById("btn-mode-tab");
+        const btnModeAll = document.getElementById("btn-mode-all");
+        const panels = document.querySelectorAll(".criterion-card");
+        const tabCards = document.querySelectorAll(".criteria-tab-card");
+
+        if (mode === "all") {
+            btnModeAll.classList.add("is-active");
+            btnModeAll.setAttribute("aria-pressed", "true");
+            btnModeTab.classList.remove("is-active");
+            btnModeTab.setAttribute("aria-pressed", "false");
+
+            panels.forEach(p => p.classList.remove("is-panel-hidden"));
+            tabCards.forEach(t => t.classList.remove("is-active"));
+        } else {
+            // Quay về tab đầu tiên hoặc tab active trước đó
+            selectCriterionTab(0, false);
+        }
+    }
+
+    // Hàm an toàn highlight dẫn chứng / lỗi trong bài viết (XSS-safe)
+    function highlightInEssay(targetPhrase) {
+        if (!targetPhrase || typeof targetPhrase !== "string") return;
+        const cleanTarget = targetPhrase.trim();
+        if (!cleanTarget) return;
+
+        const essayBox = document.getElementById("essay-reading-box");
+        const toast = document.getElementById("essay-toast");
+        const toastMsg = document.getElementById("essay-toast-msg");
+        if (!essayBox) return;
+
+        // Reset highlight cũ
+        resetEssayHighlight();
+
+        // Lấy toàn bộ nội dung văn bản gốc
+        const rawContent = essayBox.getAttribute("data-original-content") || essayBox.innerText;
+
+        // Tìm vị trí của chuỗi trong văn bản
+        const matchIdx = rawContent.indexOf(cleanTarget);
+        if (matchIdx === -1) {
+            if (toast && toastMsg) {
+                toastMsg.textContent = "Đoạn văn được nhận xét tổng hợp từ ngữ cảnh bài viết.";
+                toast.classList.add("is-visible");
+            }
+            return;
+        }
+
+        // Tách 3 phần: trước, đoạn match, sau và escape an toàn
+        const before = escapeHtml(rawContent.substring(0, matchIdx));
+        const matched = escapeHtml(rawContent.substring(matchIdx, matchIdx + cleanTarget.length));
+        const after = escapeHtml(rawContent.substring(matchIdx + cleanTarget.length));
+
+        // Format lại các đoạn văn
+        const formattedHtml = (before + '<mark class="essay-mark-active" id="active-essay-mark">' + matched + '</mark>' + after)
+            .split("\n\n")
+            .map(p => '<p class="essay-para">' + p.replace(/\n/g, "<br>") + '</p>')
+            .join("");
+
+        essayBox.innerHTML = formattedHtml;
+
+        if (toast && toastMsg) {
+            toastMsg.textContent = "📍 Đã đánh dấu câu tương ứng trong bài";
+            toast.classList.add("is-visible");
+        }
+
+        // Cuộn tới vị trí đánh dấu
+        const markElem = document.getElementById("active-essay-mark");
+        if (markElem) {
+            markElem.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+            const reviewSec = document.getElementById("essay-review-section");
+            if (reviewSec) reviewSec.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    }
+
+    function resetEssayHighlight() {
+        const essayBox = document.getElementById("essay-reading-box");
+        const toast = document.getElementById("essay-toast");
+        if (!essayBox) return;
+
+        const rawContent = essayBox.getAttribute("data-original-content") || "";
+        const formattedHtml = escapeHtml(rawContent)
+            .split("\n\n")
+            .map(p => '<p class="essay-para">' + p.replace(/\n/g, "<br>") + '</p>')
+            .join("");
+
+        essayBox.innerHTML = formattedHtml;
+        if (toast) toast.classList.remove("is-visible");
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #1A202C; }
+      .box-title { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #2D3748; }
+      .box-desc { font-family: system-ui, sans-serif; font-size: 11px; fill: #4A5568; }
+      .step-num { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 800; fill: #E51D24; }
+      .arrow { stroke: #E51D24; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#E51D24" />
+    </marker>
+  </defs>
+  <rect width="720" height="380" fill="#FFFFFF" rx="8" />
+  <text x="30" y="32" class="title">The Recycling Process of Plastic Bottles</text>
+  <text x="30" y="50" font-family="system-ui, sans-serif" font-size="12px" fill="#718096">Flowchart outlining the transformation of discarded plastic into reusable materials</text>
+
+  <!-- Step 1: Collection -->
+  <rect x="30" y="80" width="180" height="100" fill="#F7FAFC" stroke="#CBD5E0" stroke-width="1.5" rx="6" />
+  <circle cx="50" cy="102" r="12" fill="#FFF5F5" stroke="#FED7D7" />
+  <text x="50" y="106" class="step-num" text-anchor="middle">1</text>
+  <text x="72" y="106" class="box-title">Collection</text>
+  <text x="45" y="130" class="box-desc">Used plastic bottles are</text>
+  <text x="45" y="146" class="box-desc">gathered in recycling bins</text>
+  <text x="45" y="162" class="box-desc">and transported by truck.</text>
+
+  <!-- Arrow 1 -> 2 -->
+  <line x1="215" y1="130" x2="265" y2="130" class="arrow" />
+
+  <!-- Step 2: Sorting & Cleaning -->
+  <rect x="270" y="80" width="180" height="100" fill="#F7FAFC" stroke="#CBD5E0" stroke-width="1.5" rx="6" />
+  <circle cx="290" cy="102" r="12" fill="#FFF5F5" stroke="#FED7D7" />
+  <text x="290" y="106" class="step-num" text-anchor="middle">2</text>
+  <text x="312" y="106" class="box-title">Sorting &amp; Washing</text>
+  <text x="285" y="130" class="box-desc">Bottles are sorted by type</text>
+  <text x="285" y="146" class="box-desc">and thoroughly washed</text>
+  <text x="285" y="162" class="box-desc">to remove labels and dirt.</text>
+
+  <!-- Arrow 2 -> 3 -->
+  <line x1="455" y1="130" x2="505" y2="130" class="arrow" />
+
+  <!-- Step 3: Crushing -->
+  <rect x="510" y="80" width="180" height="100" fill="#F7FAFC" stroke="#CBD5E0" stroke-width="1.5" rx="6" />
+  <circle cx="530" cy="102" r="12" fill="#FFF5F5" stroke="#FED7D7" />
+  <text x="530" y="106" class="step-num" text-anchor="middle">3</text>
+  <text x="552" y="106" class="box-title">Shredding</text>
+  <text x="525" y="130" class="box-desc">Cleaned bottles are cut</text>
+  <text x="525" y="146" class="box-desc">and crushed into tiny</text>
+  <text x="525" y="162" class="box-desc">plastic flakes.</text>
+
+  <!-- Arrow 3 down to 4 -->
+  <path d="M 600 185 L 600 215 L 600 225" class="arrow" />
+
+  <!-- Step 4: Melting -->
+  <rect x="510" y="235" width="180" height="100" fill="#F7FAFC" stroke="#CBD5E0" stroke-width="1.5" rx="6" />
+  <circle cx="530" cy="257" r="12" fill="#FFF5F5" stroke="#FED7D7" />
+  <text x="530" y="261" class="step-num" text-anchor="middle">4</text>
+  <text x="552" y="261" class="box-title">Melting &amp; Pellets</text>
+  <text x="525" y="285" class="box-desc">Flakes are heated, melted,</text>
+  <text x="525" y="301" class="box-desc">and formed into uniform</text>
+  <text x="525" y="317" class="box-desc">raw plastic pellets.</text>
+
+  <!-- Arrow 4 -> 5 -->
+  <line x1="505" y1="285" x2="455" y2="285" class="arrow" />
+
+  <!-- Step 5: Yarn / Preform -->
+  <rect x="270" y="235" width="180" height="100" fill="#F7FAFC" stroke="#CBD5E0" stroke-width="1.5" rx="6" />
+  <circle cx="290" cy="257" r="12" fill="#FFF5F5" stroke="#FED7D7" />
+  <text x="290" y="261" class="step-num" text-anchor="middle">5</text>
+  <text x="312" y="261" class="box-title">Raw Material</text>
+  <text x="285" y="285" class="box-desc">Pellets are spun into yarn</text>
+  <text x="285" y="301" class="box-desc">or preformed for molding</text>
+  <text x="285" y="317" class="box-desc">into new containers.</text>
+
+  <!-- Arrow 5 -> 6 -->
+  <line x1="265" y1="285" x2="215" y2="285" class="arrow" />
+
+  <!-- Step 6: End Products -->
+  <rect x="30" y="235" width="180" height="100" fill="#F0FFF4" stroke="#9AE6B4" stroke-width="1.5" rx="6" />
+  <circle cx="50" cy="257" r="12" fill="#E6FFFA" stroke="#81E6D9" />
+  <text x="50" y="261" class="step-num" text-anchor="middle" fill="#38A169">6</text>
+  <text x="72" y="261" class="box-title" fill="#22543D">End Products</text>
+  <text x="45" y="285" class="box-desc" fill="#276749">Manufacture of new clothes,</text>
+  <text x="45" y="301" class="box-desc" fill="#276749">recycled bottles, and</text>
+  <text x="45" y="317" class="box-desc" fill="#276749">commercial goods.</text>
+</svg>

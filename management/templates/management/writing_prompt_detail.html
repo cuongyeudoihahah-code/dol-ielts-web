@@ -1,0 +1,300 @@
+{% extends "management/base_admin.html" %}
+
+{% block title %}Task #WT-{{ prompt.id|stringformat:"03d" }} Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+    }
+
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--dol-gray-200);
+        margin-bottom: 20px;
+    }
+
+    .detail-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--dol-gray-900);
+    }
+
+    .detail-id {
+        font-family: ui-monospace, SFMono-Regular, monospace;
+        font-size: 0.85rem;
+        color: var(--dol-gray-600);
+        margin-top: 4px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .info-item {
+        background-color: var(--dol-gray-100);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        padding: 12px 16px;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--dol-gray-600);
+        margin-bottom: 4px;
+    }
+
+    .info-val {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--dol-gray-900);
+    }
+
+    .question-box {
+        background-color: #FAFAFA;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        padding: 18px;
+        margin-bottom: 24px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    .support-status-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .support-status-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .support-status-card {
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        padding: 14px;
+        background-color: var(--dol-white);
+    }
+
+    .support-status-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--dol-gray-900);
+    }
+
+    .support-preview-text {
+        font-size: 0.8rem;
+        color: var(--dol-gray-600);
+        max-height: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.4;
+    }
+
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 20px;
+        border-top: 1px solid var(--dol-gray-200);
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb-bar">
+    <a href="{% url 'management:writing_prompt_list' %}">Writing Tasks</a>
+    <span class="breadcrumb-separator">/</span>
+    <strong>Task #WT-{{ prompt.id|stringformat:"03d" }}</strong>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="detail-card">
+    <div class="detail-header">
+        <div>
+            <h1 class="detail-title">{{ prompt.title }}</h1>
+            <div class="detail-id">
+                Mã đề: #WT-{{ prompt.id|stringformat:"03d" }} &middot; Tạo ngày: {{ prompt.created_at|date:"d/m/Y H:i" }} &middot; Cập nhật: {{ prompt.updated_at|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            {% if prompt.task_type == 'TASK_1' %}
+            <span class="badge badge-task1">Task 1</span>
+            {% else %}
+            <span class="badge badge-task2">Task 2</span>
+            {% endif %}
+
+            <span class="badge badge-level">
+                {% if prompt.level == 'BEGINNER' %}Band 5-6 (Beginner)
+                {% elif prompt.level == 'INTERMEDIATE' %}Band 6-7 (Intermediate)
+                {% elif prompt.level == 'ADVANCED' %}Band 7-8+ (Advanced)
+                {% else %}{{ prompt.get_level_display }}{% endif %}
+            </span>
+
+            {% if prompt.status == 'PUBLISHED' %}
+            <span class="badge badge-visible">Visible (Published)</span>
+            {% else %}
+            <span class="badge badge-hidden">Hidden</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Số bài nộp của học viên</div>
+            <div class="info-val">
+                {{ prompt.submission_count }} bài nộp
+                {% if prompt.submission_count > 0 %}
+                <span style="font-size: 0.8rem; color: #92400E; font-weight: normal;">(Nội dung đã khóa)</span>
+                {% else %}
+                <span style="font-size: 0.8rem; color: var(--dol-green); font-weight: normal;">(Được phép sửa mọi trường)</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label">Tư liệu hình ảnh (Visual Material)</div>
+            <div class="info-val" style="font-size: 0.9rem;">
+                {% if prompt.image_file %}
+                <a href="{{ prompt.image_file }}" target="_blank" style="color: var(--dol-blue);">{{ prompt.image_file|truncatechars:35 }}</a>
+                {% else %}
+                <span style="color: var(--dol-gray-500);">Không có ảnh</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label">Trạng thái công bố</div>
+            <div class="info-val">
+                {% if prompt.status == 'PUBLISHED' %}
+                <span style="color: var(--dol-green);">Đang hiển thị cho học viên</span>
+                {% else %}
+                <span style="color: var(--dol-gray-600);">Đang ẩn</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--dol-gray-900);">
+        Nội dung câu hỏi đề thi (Full Question)
+    </h2>
+    <div class="question-box">
+        {{ prompt.prompt_text }}
+    </div>
+
+    {% if prompt.image_file %}
+    <div style="margin-bottom: 24px; text-align: center; background-color: #FAFAFA; border: 1px solid var(--dol-gray-300); border-radius: var(--radius-md); padding: 16px;">
+        <img src="{{ prompt.image_file }}" alt="Visual Material" style="max-width: 100%; max-height: 300px; border-radius: 4px;">
+    </div>
+    {% endif %}
+
+    <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: var(--dol-gray-900);">
+        Nội dung hỗ trợ liên kết (Writing Support Materials)
+    </h2>
+    <div class="support-status-grid">
+        <div class="support-status-card">
+            <div class="support-status-header">
+                <span>Dàn ý gợi ý (Outline)</span>
+                {% if support and support.outline_text %}
+                <span class="badge badge-visible">Đã có</span>
+                {% else %}
+                <span class="badge badge-hidden">Chưa có</span>
+                {% endif %}
+            </div>
+            <div class="support-preview-text">
+                {% if support and support.outline_text %}
+                {{ support.outline_text|linebreaksbr }}
+                {% else %}
+                <em>Chưa thiết lập dàn ý gợi ý cho đề này.</em>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="support-status-card">
+            <div class="support-status-header">
+                <span>Bài viết mẫu (Sample)</span>
+                {% if support and support.sample_answer %}
+                <span class="badge badge-visible">Đã có</span>
+                {% else %}
+                <span class="badge badge-hidden">Chưa có</span>
+                {% endif %}
+            </div>
+            <div class="support-preview-text">
+                {% if support and support.sample_answer %}
+                {{ support.sample_answer|linebreaksbr }}
+                {% else %}
+                <em>Chưa thiết lập bài viết mẫu cho đề này.</em>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="support-status-card">
+            <div class="support-status-header">
+                <span>Từ vựng gợi ý (Vocabulary)</span>
+                {% if support and support.suggested_vocabulary %}
+                <span class="badge badge-visible">Đã có</span>
+                {% else %}
+                <span class="badge badge-hidden">Chưa có</span>
+                {% endif %}
+            </div>
+            <div class="support-preview-text">
+                {% if support and support.suggested_vocabulary %}
+                {{ support.suggested_vocabulary|linebreaksbr }}
+                {% else %}
+                <em>Chưa thiết lập từ vựng gợi ý cho đề này.</em>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <a href="{% url 'management:writing_prompt_list' %}" class="btn btn-secondary">
+            &larr; Quay lại danh sách
+        </a>
+        <div style="display: flex; gap: 8px;">
+            <a href="{% url 'management:writing_support_manage' prompt.id %}" class="btn btn-secondary">
+                Quản lý nội dung hỗ trợ
+            </a>
+            <a href="{% url 'management:writing_prompt_edit' prompt.id %}" class="btn btn-secondary">
+                Chỉnh sửa đề
+            </a>
+            <form method="post" action="{% url 'management:writing_prompt_status_toggle' prompt.id %}" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn {% if prompt.status == 'PUBLISHED' %}ẨN{% else %}HIỂN THỊ{% endif %} đề #WT-{{ prompt.id|stringformat:"03d" }}?');">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                {% if prompt.status == 'PUBLISHED' %}
+                <button type="submit" class="btn btn-outline-danger">
+                    Ẩn đề (Hide)
+                </button>
+                {% else %}
+                <button type="submit" class="btn btn-outline-success">
+                    Hiển thị đề (Publish)
+                </button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+[
+  {
+    "model": "writing.writingprompt",
+    "pk": 1,
+    "fields": {
+      "title": "Technology and Education",
+      "task_type": "TASK_2",
+      "prompt_text": "Some people believe that technology has improved the quality of education, while others think it has created more problems than benefits.\n\nDiscuss both views and give your own opinion.",
+      "image_file": "",
+      "level": "INTERMEDIATE",
+      "status": "PUBLISHED",
+      "created_at": "2026-11-04T12:00:00Z",
+      "updated_at": "2026-11-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "writing.writingsupport",
+    "pk": 1,
+    "fields": {
+      "outline_text": "I. Introduction:\n- Paraphrase prompt: The integration of technology in modern education sparks debate regarding whether it enhances learning or introduces severe drawbacks.\n- Thesis Statement: While digital tools may cause distractions and reduce face-to-face interaction, I argue that their advantages in expanding educational accessibility and interactivity far outweigh these downsides.\n\nII. Body Paragraph 1 (Counter-argument / Problems of Technology):\n- Topic Sentence: Critics often point out that excessive reliance on digital devices can disrupt students' focus and compromise educational quality.\n- Supporting Idea 1: Distraction by social media, gaming, and non-academic content during study hours.\n- Supporting Idea 2: Passive learning and digital divide; potential decline in critical interpersonal and social skills.\n\nIII. Body Paragraph 2 (Merits of Technology in Education):\n- Topic Sentence: On the other hand, technological advancements have fundamentally democratized access to information and enhanced pedagogy.\n- Supporting Idea 1: Instant access to global learning materials, scholarly databases, and virtual laboratories regardless of geographic boundaries.\n- Supporting Idea 2: Interactive and adaptive learning platforms that cater to individual paces through AI-driven personalized exercises.\n\nIV. Conclusion:\n- Restate Thesis: Although digital distractions remain a valid concern, the educational empowerment provided by technology is undeniable.\n- Final Thought: Schools and educators should focus on fostering digital literacy and disciplined screen time rather than resisting technological integration.",
+      "sample_answer": "In contemporary society, the widespread integration of technology into educational systems has provoked widespread debate. While a faction of observers argues that digital devices generate more impediments than advantages, others contend that technological innovation fundamentally elevates the quality of learning. In my view, although digital distractions represent a legitimate challenge, the pedagogical benefits of educational technology are substantially more significant.\n\nOn the one hand, skeptics argue that digital devices often undermine academic focus and interpersonal development. In classroom settings, smartphones and laptops can easily divert learners' attention toward social networking, instant messaging, or online gaming instead of the curriculum. Furthermore, an overdependence on automated tools—such as digital calculators and automated text generators—may erode foundational cognitive skills, including mental arithmetic and critical reasoning. In addition, the shift toward screen-based learning can diminish meaningful face-to-face communication, potentially impairing students' collaborative and social competencies.\n\nOn the other hand, technology offers unprecedented opportunities for knowledge acquisition and instructional flexibility. Firstly, the internet has democratized access to premier educational resources, allowing students from remote or disadvantaged backgrounds to access high-caliber lectures, digital libraries, and interactive courses from prestigious global institutions. Secondly, modern multimedia tools, such as simulations and adaptive software, accommodate diverse learning styles by offering personalized feedback and pacing. For instance, visual learners can benefit immensely from three-dimensional scientific models, which clarify intricate concepts far more effectively than traditional chalkboards and textbooks.\n\nIn conclusion, while the proliferation of technology in classrooms undeniably introduces issues surrounding distraction and cognitive dependency, its transformative power in making learning accessible and interactive cannot be overlooked. Educational institutions should therefore establish prudent usage guidelines to mitigate these pitfalls while fully harnessing technological potential.",
+      "suggested_vocabulary": "- Pedagogical benefits: Các lợi ích về mặt sư phạm / phương pháp giảng dạy\n- Digital distraction: Sự xao nhãng do thiết bị kỹ thuật số\n- Democratize access to knowledge: Dân chủ hóa / bình đẳng hóa khả năng tiếp cận tri thức\n- Overdependence on automated tools: Sự phụ thuộc quá mức vào các công cụ tự động\n- Cognitive competencies / skills: Các năng lực nhận thức và tư duy\n- Disadvantaged backgrounds: Hoàn cảnh khó khăn, bất lợi\n- Adaptive learning platforms: Các nền tảng học tập thích ứng cá nhân hóa\n- Prudent usage guidelines: Các quy định, hướng dẫn sử dụng thận trọng và hợp lý",
+      "updated_at": "2026-11-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "writing.writingprompt",
+    "pk": 2,
+    "fields": {
+      "title": "Traditional Books and E-books",
+      "task_type": "TASK_2",
+      "prompt_text": "Some people think that traditional paper books are no longer necessary because of e-books and digital reading devices.\n\nTo what extent do you agree or disagree?",
+      "image_file": "",
+      "level": "BEGINNER",
+      "status": "HIDDEN",
+      "created_at": "2026-11-04T12:00:00Z",
+      "updated_at": "2026-11-04T12:00:00Z"
+    }
+  }
+]

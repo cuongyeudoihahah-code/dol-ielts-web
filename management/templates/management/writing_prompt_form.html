@@ -1,0 +1,535 @@
+{% extends "management/base_admin.html" %}
+
+{% block title %}
+{% if is_create %}Add Writing Task{% else %}Edit Task #WT-{{ prompt.id|stringformat:"03d" }}{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .form-header-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dol-gray-900);
+    }
+
+    .mode-badges {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .badge-edit-mode {
+        background-color: #FEF3C7;
+        color: #92400E;
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid #FCD34D;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-admin-only {
+        background-color: #FEE2E2;
+        color: var(--dol-red);
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid #FECACA;
+        letter-spacing: 0.5px;
+    }
+
+    /* 2-Column Split Layout matching Hình 43 */
+    .editor-layout {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+        .editor-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Left Column: Form Card */
+    .form-card {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .form-section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dol-gray-900);
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--dol-gray-200);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--dol-gray-900);
+        margin-bottom: 6px;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        background-color: var(--dol-white);
+        color: var(--dol-charcoal);
+        outline: none;
+        transition: all 0.15s ease;
+        font-family: inherit;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--dol-red);
+        box-shadow: 0 0 0 3px rgba(229, 29, 36, 0.1);
+    }
+
+    .form-control:disabled, .form-select:disabled {
+        background-color: var(--dol-gray-100);
+        color: var(--dol-gray-600);
+        cursor: not-allowed;
+        border-color: var(--dol-gray-300);
+    }
+
+    .form-help {
+        font-size: 0.775rem;
+        color: var(--dol-gray-600);
+        margin-top: 4px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .locked-notice {
+        background-color: #FFFBEB;
+        border: 1px solid #FDE68A;
+        border-radius: var(--radius-md);
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        font-size: 0.875rem;
+        color: #92400E;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        line-height: 1.5;
+    }
+
+    .locked-notice-icon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .form-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--dol-gray-200);
+    }
+
+    /* Right Column: Live Document Preview Card */
+    .preview-card {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        position: sticky;
+        top: 80px;
+    }
+
+    .preview-header {
+        background-color: #F8FAFC;
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--dol-gray-300);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .preview-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--dol-gray-700);
+    }
+
+    .live-badge {
+        background-color: #EBF8FF;
+        color: var(--dol-blue);
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid #BEE3F8;
+    }
+
+    .preview-body {
+        padding: 24px;
+        background-color: #FFFFFF;
+    }
+
+    .preview-paper {
+        border: 1px dashed var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        background-color: #FAFAFA;
+    }
+
+    .preview-paper-brand {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--dol-red);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--dol-gray-300);
+        padding-bottom: 8px;
+    }
+
+    .preview-task-type {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--dol-gray-900);
+        margin-bottom: 8px;
+    }
+
+    .preview-instructions {
+        font-size: 0.85rem;
+        color: var(--dol-gray-600);
+        font-style: italic;
+        margin-bottom: 16px;
+    }
+
+    .preview-question-text {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--dol-gray-900);
+        white-space: pre-wrap;
+        background-color: #FFFFFF;
+        padding: 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--dol-gray-300);
+        margin-bottom: 16px;
+        min-height: 120px;
+    }
+
+    .preview-image-container {
+        margin-bottom: 16px;
+        padding: 12px;
+        background-color: #FFFFFF;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        text-align: center;
+    }
+
+    .preview-image-img {
+        max-width: 100%;
+        max-height: 220px;
+        border-radius: 4px;
+    }
+
+    .preview-word-limit {
+        font-size: 0.8rem;
+        color: var(--dol-gray-600);
+        padding-top: 12px;
+        border-top: 1px solid var(--dol-gray-200);
+        line-height: 1.4;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb-bar">
+    <a href="{% url 'management:writing_prompt_list' %}">Writing Tasks</a>
+    <span class="breadcrumb-separator">/</span>
+    <strong>
+        {% if is_create %}
+        New Task
+        {% else %}
+        Edit Task #WT-{{ prompt.id|stringformat:"03d" }}
+        {% endif %}
+    </strong>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="form-header-row">
+    <div>
+        <h1 class="form-header-title">
+            {% if is_create %}
+            Create New Writing Task
+            {% else %}
+            Edit Writing Task #WT-{{ prompt.id|stringformat:"03d" }}
+            {% endif %}
+        </h1>
+        <p style="font-size: 0.875rem; color: var(--dol-gray-600); margin-top: 2px;">
+            {% if is_create %}
+            Thêm đề luyện Writing mới vào hệ thống (mặc định trạng thái Ẩn)
+            {% else %}
+            Chỉnh sửa thông tin đề và cấu hình hiển thị cho học viên (UC-WRI-05)
+            {% endif %}
+        </p>
+    </div>
+    <div class="mode-badges">
+        <span class="badge-admin-only">ADMIN ONLY</span>
+        <span class="badge-edit-mode">{% if is_create %}CREATE MODE{% else %}EDIT MODE{% endif %}</span>
+    </div>
+</div>
+
+{% if has_submissions %}
+<div class="locked-notice" role="alert">
+    <span class="locked-notice-icon">🔒</span>
+    <div>
+        <strong>Đề bài đã có {{ prompt.submission_count }} bài nộp của học viên!</strong>
+        <p style="margin-top: 4px;">
+            Theo quy tắc bảo toàn lịch sử chấm điểm (Alternative Flow A2 & E5), nội dung cốt lõi của đề 
+            (Tiêu đề, Dạng bài, Trình độ, Nội dung câu hỏi và Hình ảnh) đã được khóa an toàn. 
+            Bạn chỉ có thể thay đổi <strong>Trạng thái hiển thị (Ẩn/Hiện)</strong>. 
+            Nếu muốn thay đổi nội dung câu hỏi, vui lòng bấm Hủy và tạo một đề mới.
+        </p>
+    </div>
+</div>
+{% endif %}
+
+<div class="editor-layout">
+    <!-- CỘT TRÁI: FORM BIỂU MẪU (Hình 43) -->
+    <div class="form-card">
+        <h2 class="form-section-title">
+            {% if is_create %}Thông tin đề Writing mới{% else %}Thông tin đề #WT-{{ prompt.id|stringformat:"03d" }}{% endif %}
+        </h2>
+
+        <form method="post" id="prompt-form" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-error" style="margin-bottom: 20px;">
+                {% for err in form.non_field_errors %}
+                <div>{{ err }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Task Title -->
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}" class="form-label">
+                    Tiêu đề đề bài (Task Title) *
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <p class="form-help" style="color: var(--dol-red);">{{ form.title.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Task Type & Level -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.task_type.id_for_label }}" class="form-label">
+                        Dạng bài (Task Type) *
+                    </label>
+                    {{ form.task_type }}
+                    {% if form.task_type.errors %}
+                    <p class="form-help" style="color: var(--dol-red);">{{ form.task_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.level.id_for_label }}" class="form-label">
+                        Trình độ (Level / Band) *
+                    </label>
+                    {{ form.level }}
+                    {% if form.level.errors %}
+                    <p class="form-help" style="color: var(--dol-red);">{{ form.level.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Full Question -->
+            <div class="form-group">
+                <label for="{{ form.prompt_text.id_for_label }}" class="form-label">
+                    Nội dung câu hỏi đề thi (Full Question) *
+                </label>
+                {{ form.prompt_text }}
+                {% if form.prompt_text.errors %}
+                <p class="form-help" style="color: var(--dol-red);">{{ form.prompt_text.errors.0 }}</p>
+                {% endif %}
+                <p class="form-help">Nhập đề bài tiếng Anh chính thức của IELTS Writing.</p>
+            </div>
+
+            <!-- Visual Material -->
+            <div class="form-group">
+                <label for="{{ form.image_file.id_for_label }}" class="form-label">
+                    Tư liệu hình ảnh / biểu đồ (Visual Material - Tùy chọn cho Task 1)
+                </label>
+                {{ form.image_file }}
+                {% if form.image_file.errors %}
+                <p class="form-help" style="color: var(--dol-red);">{{ form.image_file.errors.0 }}</p>
+                {% endif %}
+                <p class="form-help">Đường dẫn hình ảnh biểu đồ trong hệ thống (VARCHAR 500) hoặc URL trực tiếp.</p>
+            </div>
+
+            <!-- Visibility Status -->
+            <div class="form-group">
+                <label for="{{ form.status.id_for_label }}" class="form-label">
+                    Trạng thái hiển thị (Visibility Status) *
+                </label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                <p class="form-help" style="color: var(--dol-red);">{{ form.status.errors.0 }}</p>
+                {% endif %}
+                <p class="form-help">
+                    <strong>PUBLISHED (Visible):</strong> Học viên nhìn thấy và nộp bài luyện tập.<br>
+                    <strong>HIDDEN:</strong> Ẩn khỏi danh sách học viên, học viên không thể nộp bài mới.
+                </p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="form-actions">
+                <a href="{% url 'management:writing_prompt_list' %}" class="btn btn-secondary">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="btn btn-primary" id="btn-save">
+                    Lưu thay đổi (Save Changes)
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- CỘT PHẢI: LIVE DOCUMENT PREVIEW (Hình 43) -->
+    <div class="preview-card" aria-live="polite">
+        <div class="preview-header">
+            <span class="preview-title">Document Preview</span>
+            <span class="live-badge">&bull; LIVE PREVIEW</span>
+        </div>
+        <div class="preview-body">
+            <div class="preview-paper">
+                <div class="preview-paper-brand">
+                    <span>DOL IELTS WRITING</span>
+                    <span id="preview-badge-type-level">TASK 2 &middot; BAND 6-7</span>
+                </div>
+
+                <div class="preview-task-type" id="preview-task-title">
+                    WRITING TASK 2
+                </div>
+
+                <div class="preview-instructions" id="preview-time-instruction">
+                    You should spend about 40 minutes on this task.
+                </div>
+
+                <div class="preview-question-text" id="preview-question-text">
+                    Nội dung câu hỏi đề thi sẽ được cập nhật trực tiếp tại đây khi bạn nhập liệu...
+                </div>
+
+                <div id="preview-image-box" class="preview-image-container" style="display: none;">
+                    <img id="preview-image-tag" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Visual Material Preview" class="preview-image-img">
+                </div>
+
+                <div class="preview-word-limit" id="preview-word-limit">
+                    Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        const titleInput = document.getElementById('id_title');
+        const taskTypeSelect = document.getElementById('id_task_type');
+        const levelSelect = document.getElementById('id_level');
+        const promptTextInput = document.getElementById('id_prompt_text');
+        const imageFileInput = document.getElementById('id_image_file');
+
+        const previewBadge = document.getElementById('preview-badge-type-level');
+        const previewTaskTitle = document.getElementById('preview-task-title');
+        const previewTimeInstruction = document.getElementById('preview-time-instruction');
+        const previewQuestionText = document.getElementById('preview-question-text');
+        const previewImageBox = document.getElementById('preview-image-box');
+        const previewImageTag = document.getElementById('preview-image-tag');
+        const previewWordLimit = document.getElementById('preview-word-limit');
+
+        function updatePreview() {
+            // Task Type & Level
+            const taskTypeVal = taskTypeSelect ? taskTypeSelect.value : 'TASK_2';
+            const levelVal = levelSelect ? levelSelect.value : 'INTERMEDIATE';
+            
+            const isTask1 = (taskTypeVal === 'TASK_1');
+            const typeLabel = isTask1 ? 'TASK 1' : 'TASK 2';
+            
+            let levelLabel = 'BAND 6-7';
+            if (levelVal === 'BEGINNER') levelLabel = 'BAND 5-6';
+            else if (levelVal === 'ADVANCED') levelLabel = 'BAND 7-8+';
+
+            previewBadge.textContent = `${typeLabel} · ${levelLabel}`;
+            previewTaskTitle.textContent = isTask1 ? 'WRITING TASK 1' : 'WRITING TASK 2';
+            previewTimeInstruction.textContent = isTask1 
+                ? 'You should spend about 20 minutes on this task.' 
+                : 'You should spend about 40 minutes on this task.';
+
+            previewWordLimit.textContent = isTask1
+                ? 'Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.'
+                : 'Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.';
+
+            // Question Text
+            const questionVal = promptTextInput ? promptTextInput.value.trim() : '';
+            if (questionVal) {
+                previewQuestionText.textContent = questionVal;
+            } else {
+                previewQuestionText.textContent = 'Nội dung câu hỏi đề thi sẽ được cập nhật trực tiếp tại đây khi bạn nhập liệu...';
+            }
+
+            // Visual Material Image
+            const imgVal = imageFileInput ? imageFileInput.value.trim() : '';
+            if (imgVal) {
+                previewImageTag.src = imgVal;
+                previewImageBox.style.display = 'block';
+            } else {
+                previewImageBox.style.display = 'none';
+            }
+        }
+
+        if (titleInput) titleInput.addEventListener('input', updatePreview);
+        if (taskTypeSelect) taskTypeSelect.addEventListener('change', updatePreview);
+        if (levelSelect) levelSelect.addEventListener('change', updatePreview);
+        if (promptTextInput) promptTextInput.addEventListener('input', updatePreview);
+        if (imageFileInput) imageFileInput.addEventListener('input', updatePreview);
+
+        // Initial preview call on page load
+        updatePreview();
+    })();
+</script>
+{% endblock %}

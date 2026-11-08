@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+    <title>{% block title %}DOL Admin{% endblock %} | DOL Đình Lực Writing Management</title>
+    <style>
+        :root {
+            --dol-red: #E51D24;
+            --dol-red-hover: #C7181F;
+            --dol-red-light: #FFF5F5;
+            --dol-charcoal: #1A202C;
+            --dol-gray-900: #171923;
+            --dol-gray-700: #4A5568;
+            --dol-gray-600: #718096;
+            --dol-gray-400: #CBD5E0;
+            --dol-gray-300: #E2E8F0;
+            --dol-gray-200: #EDF2F7;
+            --dol-gray-100: #F7FAFC;
+            --dol-white: #FFFFFF;
+            --dol-green: #38A169;
+            --dol-green-light: #F0FFF4;
+            --dol-blue: #3182CE;
+            --dol-blue-light: #EBF8FF;
+            --dol-yellow: #D69E2E;
+            --dol-yellow-light: #FEFCBF;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #F8FAFC;
+            color: var(--dol-charcoal);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.25; }
+        h2 { font-size: 1.375rem; font-weight: 700; line-height: 1.3; }
+        h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.35; }
+
+        /* Top Admin Header */
+        .admin-header {
+            background-color: var(--dol-white);
+            border-bottom: 1px solid var(--dol-gray-300);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-topbar {
+            height: 3px;
+            background: linear-gradient(90deg, var(--dol-red) 0%, #FF6B6B 100%);
+        }
+
+        .header-container {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 10px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--dol-charcoal);
+        }
+
+        .brand-logo-badge {
+            background-color: var(--dol-red);
+            color: var(--dol-white);
+            font-weight: 800;
+            font-size: 1rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-text {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--dol-charcoal);
+            line-height: 1.2;
+        }
+
+        .brand-subtext {
+            font-size: 0.75rem;
+            color: var(--dol-gray-600);
+            display: block;
+        }
+
+        /* Admin Navigation */
+        .admin-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: var(--dol-gray-700);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: var(--radius-md);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-item:hover {
+            color: var(--dol-red);
+            background-color: var(--dol-red-light);
+        }
+
+        .nav-item.active {
+            color: var(--dol-red);
+            background-color: var(--dol-red-light);
+            border-bottom: 2px solid var(--dol-red);
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-pill {
+            background-color: #FEF2F2;
+            color: var(--dol-red);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid #FECACA;
+            letter-spacing: 0.5px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dol-gray-900);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--dol-gray-200);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--dol-gray-700);
+            font-weight: 700;
+            border: 1px solid var(--dol-gray-300);
+        }
+
+        .btn-view-student {
+            font-size: 0.8rem;
+            color: var(--dol-blue);
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background-color: var(--dol-blue-light);
+            font-weight: 600;
+            border: 1px solid #BEE3F8;
+            transition: background 0.15s;
+        }
+
+        .btn-view-student:hover {
+            background-color: #bee3f8;
+        }
+
+        /* Main Container */
+        .admin-main {
+            flex: 1;
+            max-width: 1360px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.825rem;
+            color: var(--dol-gray-600);
+            margin-bottom: 16px;
+        }
+
+        .breadcrumb-bar a {
+            color: var(--dol-gray-600);
+            text-decoration: none;
+        }
+
+        .breadcrumb-bar a:hover {
+            color: var(--dol-red);
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: var(--dol-gray-400);
+        }
+
+        /* Messages */
+        .messages-container {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .alert-success {
+            background-color: var(--dol-green-light);
+            border: 1px solid #C6F6D5;
+            color: #22543D;
+        }
+
+        .alert-error, .alert-danger {
+            background-color: var(--dol-red-light);
+            border: 1px solid #FED7D7;
+            color: #9B2C2C;
+        }
+
+        .alert-warning {
+            background-color: var(--dol-yellow-light);
+            border: 1px solid #FEEBC8;
+            color: #7B341E;
+        }
+
+        .alert-info {
+            background-color: var(--dol-blue-light);
+            border: 1px solid #BEE3F8;
+            color: #2B6CB0;
+        }
+
+        /* Shared Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+            line-height: 1.4;
+        }
+
+        .btn-primary {
+            background-color: var(--dol-red);
+            color: var(--dol-white);
+            border-color: var(--dol-red);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--dol-red-hover);
+            border-color: var(--dol-red-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--dol-white);
+            color: var(--dol-gray-700);
+            border-color: var(--dol-gray-300);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--dol-gray-100);
+            color: var(--dol-gray-900);
+            border-color: var(--dol-gray-400);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .btn-outline-danger {
+            background-color: transparent;
+            color: var(--dol-red);
+            border-color: #FED7D7;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: var(--dol-red-light);
+        }
+
+        .btn-outline-success {
+            background-color: transparent;
+            color: var(--dol-green);
+            border-color: #C6F6D5;
+        }
+
+        .btn-outline-success:hover {
+            background-color: var(--dol-green-light);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .badge-task1 {
+            background-color: #FFF5F5;
+            color: var(--dol-red);
+            border: 1px solid #FED7D7;
+        }
+
+        .badge-task2 {
+            background-color: var(--dol-blue-light);
+            color: var(--dol-blue);
+            border: 1px solid #BEE3F8;
+        }
+
+        .badge-level {
+            background-color: var(--dol-gray-100);
+            color: var(--dol-gray-700);
+            border: 1px solid var(--dol-gray-300);
+        }
+
+        .badge-visible {
+            background-color: var(--dol-green-light);
+            color: var(--dol-green);
+            border: 1px solid #C6F6D5;
+        }
+
+        .badge-hidden {
+            background-color: var(--dol-gray-200);
+            color: var(--dol-gray-600);
+            border: 1px solid var(--dol-gray-300);
+        }
+
+        /* Footer */
+        .admin-footer {
+            background-color: var(--dol-white);
+            border-top: 1px solid var(--dol-gray-300);
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--dol-gray-600);
+            margin-top: auto;
+        }
+        /* Motion Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="admin-header">
+        <div class="header-topbar"></div>
+        <div class="header-container">
+            <div class="brand-section">
+                <a href="{% url 'management:writing_prompt_list' %}" class="brand-link">
+                    <img src="/static/images/dol_logo.png" alt="DOL IELTS ĐÌNH LỰC" style="height: 42px; width: auto; object-fit: contain; display: block;">
+                    <div>
+                        <div class="brand-text">DOL IELTS ĐÌNH LỰC</div>
+                        <span class="brand-subtext">Hệ thống Quản trị &middot; LTW Nhóm 6</span>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="{% url 'management:writing_prompt_list' %}" class="nav-item {% if active_nav == 'writing_tasks' %}active{% endif %}">
+                    Quản lý đề Writing
+                </a>
+                <a href="{% url 'management:writing_support_index' %}" class="nav-item {% if active_nav == 'support_materials' %}active{% endif %}">
+                    Nội dung hỗ trợ
+                </a>
+            </nav>
+
+            <div class="user-section">
+                <a href="{% url 'writing:prompt_list' %}" class="btn-view-student" title="Mở giao diện luyện thi của Học viên">
+                    &larr; Giao diện Học viên
+                </a>
+                <span class="admin-pill">ADMIN</span>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                    <span>{{ request.user.username }}</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-main">
+        {% block breadcrumb %}{% endblock %}
+
+        {% if messages %}
+        <div class="messages-container" role="alert">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="admin-footer">
+        &copy; 2026 DOL IELTS Đình Lực &middot; Lập trình Web Nhóm 6 &middot; Hệ thống Quản trị Nội dung Writing (UC-WRI-05, UC-WRI-06)
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

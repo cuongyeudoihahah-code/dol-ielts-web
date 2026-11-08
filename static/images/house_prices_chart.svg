@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 400" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #1A202C; }
+      .subtitle { font-family: system-ui, sans-serif; font-size: 12px; fill: #718096; }
+      .axis-label { font-family: system-ui, sans-serif; font-size: 11px; fill: #718096; }
+      .grid-line { stroke: #E2E8F0; stroke-width: 1; stroke-dasharray: 4 4; }
+      .axis-line { stroke: #CBD5E0; stroke-width: 1.5; }
+      .legend-text { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 600; fill: #2D3748; }
+    </style>
+  </defs>
+  <rect width="700" height="400" fill="#FFFFFF" rx="8" />
+  <text x="30" y="32" class="title">Average House Prices in Three Capital Cities (2000 - 2020)</text>
+  <text x="30" y="48" class="subtitle">Unit: Thousands of USD (zsh)</text>
+
+  <!-- Legend -->
+  <line x1="430" y1="30" x2="460" y2="30" stroke="#E53E3E" stroke-width="3" />
+  <circle cx="445" cy="30" r="4" fill="#E53E3E" />
+  <text x="470" y="34" class="legend-text">London</text>
+
+  <line x1="530" y1="30" x2="560" y2="30" stroke="#3182CE" stroke-width="3" />
+  <circle cx="545" cy="30" r="4" fill="#3182CE" />
+  <text x="570" y="34" class="legend-text">New York</text>
+
+  <line x1="630" y1="30" x2="660" y2="30" stroke="#38A169" stroke-width="3" />
+  <circle cx="645" cy="30" r="4" fill="#38A169" />
+  <text x="670" y="34" class="legend-text">Tokyo</text>
+
+  <!-- Y-axis grid -->
+  <line x1="60" y1="80" x2="660" y2="80" class="grid-line" />
+  <text x="45" y="84" class="axis-label" text-anchor="end">k</text>
+  <line x1="60" y1="140" x2="660" y2="140" class="grid-line" />
+  <text x="45" y="144" class="axis-label" text-anchor="end">k</text>
+  <line x1="60" y1="200" x2="660" y2="200" class="grid-line" />
+  <text x="45" y="204" class="axis-label" text-anchor="end">k</text>
+  <line x1="60" y1="260" x2="660" y2="260" class="grid-line" />
+  <text x="45" y="264" class="axis-label" text-anchor="end">k</text>
+  <line x1="60" y1="320" x2="660" y2="320" class="grid-line" />
+  <text x="45" y="324" class="axis-label" text-anchor="end">k</text>
+
+  <line x1="60" y1="350" x2="660" y2="350" class="axis-line" />
+  
+  <!-- X-axis years -->
+  <text x="100" y="370" class="axis-label" text-anchor="middle">2000</text>
+  <text x="240" y="370" class="axis-label" text-anchor="middle">2005</text>
+  <text x="380" y="370" class="axis-label" text-anchor="middle">2010</text>
+  <text x="520" y="370" class="axis-label" text-anchor="middle">2015</text>
+  <text x="640" y="370" class="axis-label" text-anchor="middle">2020</text>
+
+  <!-- Line 1: London (#E53E3E) -->
+  <polyline fill="none" stroke="#E53E3E" stroke-width="3"
+    points="100,280 240,230 380,180 520,130 640,95" />
+  <circle cx="100" cy="280" r="4" fill="#E53E3E" />
+  <circle cx="240" cy="230" r="4" fill="#E53E3E" />
+  <circle cx="380" cy="180" r="4" fill="#E53E3E" />
+  <circle cx="520" cy="130" r="4" fill="#E53E3E" />
+  <circle cx="640" cy="95" r="4" fill="#E53E3E" />
+
+  <!-- Line 2: New York (#3182CE) -->
+  <polyline fill="none" stroke="#3182CE" stroke-width="3"
+    points="100,250 240,210 380,240 520,190 640,150" />
+  <circle cx="100" cy="250" r="4" fill="#3182CE" />
+  <circle cx="240" cy="210" r="4" fill="#3182CE" />
+  <circle cx="380" cy="240" r="4" fill="#3182CE" />
+  <circle cx="520" cy="190" r="4" fill="#3182CE" />
+  <circle cx="640" cy="150" r="4" fill="#3182CE" />
+
+  <!-- Line 3: Tokyo (#38A169) -->
+  <polyline fill="none" stroke="#38A169" stroke-width="3"
+    points="100,310 240,305 380,310 520,295 640,280" />
+  <circle cx="100" cy="310" r="4" fill="#38A169" />
+  <circle cx="240" cy="305" r="4" fill="#38A169" />
+  <circle cx="380" cy="310" r="4" fill="#38A169" />
+  <circle cx="520" cy="295" r="4" fill="#38A169" />
+  <circle cx="640" cy="280" r="4" fill="#38A169" />
+</svg>

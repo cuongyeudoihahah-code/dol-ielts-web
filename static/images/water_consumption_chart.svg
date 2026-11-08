@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #1A202C; }
+      .subtitle { font-family: system-ui, sans-serif; font-size: 12px; fill: #718096; }
+      .axis-label { font-family: system-ui, sans-serif; font-size: 11px; fill: #718096; }
+      .grid-line { stroke: #E2E8F0; stroke-width: 1; stroke-dasharray: 4 4; }
+      .axis-line { stroke: #CBD5E0; stroke-width: 1.5; }
+      .legend-text { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 600; fill: #2D3748; }
+    </style>
+  </defs>
+  <rect width="700" height="420" fill="#FFFFFF" rx="8" />
+  <text x="30" y="32" class="title">Water Consumption by Sector (2018 - 2022)</text>
+  <text x="30" y="48" class="subtitle">Unit: Million cubic metres (m³)</text>
+  
+  <!-- Legend -->
+  <rect x="430" y="24" width="14" height="14" fill="#3182CE" rx="2" />
+  <text x="450" y="36" class="legend-text">Domestic</text>
+  <rect x="520" y="24" width="14" height="14" fill="#E53E3E" rx="2" />
+  <text x="540" y="36" class="legend-text">Industrial</text>
+  <rect x="610" y="24" width="14" height="14" fill="#38A169" rx="2" />
+  <text x="630" y="36" class="legend-text">Agriculture</text>
+
+  <!-- Grid lines -->
+  <line x1="60" y1="80" x2="660" y2="80" class="grid-line" />
+  <text x="45" y="84" class="axis-label" text-anchor="end">500</text>
+  <line x1="60" y1="140" x2="660" y2="140" class="grid-line" />
+  <text x="45" y="144" class="axis-label" text-anchor="end">400</text>
+  <line x1="60" y1="200" x2="660" y2="200" class="grid-line" />
+  <text x="45" y="204" class="axis-label" text-anchor="end">300</text>
+  <line x1="60" y1="260" x2="660" y2="260" class="grid-line" />
+  <text x="45" y="264" class="axis-label" text-anchor="end">200</text>
+  <line x1="60" y1="320" x2="660" y2="320" class="grid-line" />
+  <text x="45" y="324" class="axis-label" text-anchor="end">100</text>
+  
+  <line x1="60" y1="370" x2="660" y2="370" class="axis-line" />
+  <text x="45" y="374" class="axis-label" text-anchor="end">0</text>
+
+  <!-- 2018 -->
+  <text x="120" y="390" class="axis-label" text-anchor="middle" font-weight="600">2018</text>
+  <rect x="85" y="285" width="20" height="85" fill="#3182CE" rx="2" />
+  <rect x="110" y="230" width="20" height="140" fill="#E53E3E" rx="2" />
+  <rect x="135" y="170" width="20" height="200" fill="#38A169" rx="2" />
+
+  <!-- 2019 -->
+  <text x="240" y="390" class="axis-label" text-anchor="middle" font-weight="600">2019</text>
+  <rect x="205" y="270" width="20" height="100" fill="#3182CE" rx="2" />
+  <rect x="230" y="220" width="20" height="150" fill="#E53E3E" rx="2" />
+  <rect x="255" y="150" width="20" height="220" fill="#38A169" rx="2" />
+
+  <!-- 2020 -->
+  <text x="360" y="390" class="axis-label" text-anchor="middle" font-weight="600">2020</text>
+  <rect x="325" y="250" width="20" height="120" fill="#3182CE" rx="2" />
+  <rect x="350" y="205" width="20" height="165" fill="#E53E3E" rx="2" />
+  <rect x="375" y="130" width="20" height="240" fill="#38A169" rx="2" />
+
+  <!-- 2021 -->
+  <text x="480" y="390" class="axis-label" text-anchor="middle" font-weight="600">2021</text>
+  <rect x="445" y="235" width="20" height="135" fill="#3182CE" rx="2" />
+  <rect x="470" y="185" width="20" height="185" fill="#E53E3E" rx="2" />
+  <rect x="495" y="110" width="20" height="260" fill="#38A169" rx="2" />
+
+  <!-- 2022 -->
+  <text x="600" y="390" class="axis-label" text-anchor="middle" font-weight="600">2022</text>
+  <rect x="565" y="220" width="20" height="150" fill="#3182CE" rx="2" />
+  <rect x="590" y="160" width="20" height="210" fill="#E53E3E" rx="2" />
+  <rect x="615" y="90" width="20" height="280" fill="#38A169" rx="2" />
+</svg>

@@ -1,0 +1,931 @@
+{% extends "writing/base_writing.html" %}
+
+{% block title %}Làm bài: {{ prompt.title }}{% endblock %}
+
+{% block breadcrumbs %}
+    <span class="separator">/</span>
+    <a href="{% url 'writing:prompt_list' %}">Danh sách bài luyện</a>
+    <span class="separator">/</span>
+    <span class="current">{{ prompt.title|truncatechars:35 }}</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Practice Workspace Grid */
+    .practice-workspace {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        align-items: start;
+    }
+
+    @media (max-width: 960px) {
+        .practice-workspace {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Left Column: Prompt & Support Materials */
+    .prompt-panel {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .prompt-panel-header {
+        padding: 20px 24px;
+        background-color: var(--dol-gray-100);
+        border-bottom: 1px solid var(--dol-gray-300);
+    }
+
+    .prompt-panel-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+        margin-top: 8px;
+        line-height: 1.4;
+    }
+
+    .prompt-panel-body {
+        padding: 24px;
+    }
+
+    .prompt-text-box {
+        background-color: #F8FAFC;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        padding: 18px 20px;
+        color: var(--dol-charcoal);
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 20px;
+        white-space: pre-wrap;
+    }
+
+    /* Chart Image & Lightbox Styles */
+    .prompt-image-container {
+        margin-bottom: 20px;
+        background-color: #FAFAFA;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        padding: 12px 16px;
+    }
+
+    .prompt-image-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .prompt-image-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--dol-gray-700);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .prompt-image-view-box {
+        position: relative;
+        text-align: center;
+        cursor: zoom-in;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        background-color: #FFFFFF;
+        padding: 8px;
+        border: 1px solid var(--dol-gray-200);
+        transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .prompt-image-view-box:hover {
+        border-color: var(--dol-red);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .prompt-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        box-shadow: var(--shadow-sm);
+        display: block;
+        margin: 0 auto;
+    }
+
+    .prompt-image-overlay-hint {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(26, 32, 44, 0.85);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        opacity: 0;
+        transition: opacity var(--transition-fast);
+        pointer-events: none;
+        backdrop-filter: blur(2px);
+    }
+
+    .prompt-image-view-box:hover .prompt-image-overlay-hint {
+        opacity: 1;
+    }
+
+    .chart-load-error {
+        padding: 24px 20px;
+        background-color: var(--dol-gray-100);
+        border: 1px dashed var(--dol-gray-400);
+        border-radius: var(--radius-md);
+        text-align: center;
+    }
+
+    /* Lightbox Modal */
+    .chart-lightbox-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.85);
+        z-index: 1100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.2s ease-out;
+        overscroll-behavior: contain;
+    }
+
+    .chart-lightbox-container {
+        display: flex;
+        flex-direction: column;
+        max-width: 95vw;
+        max-height: 95vh;
+        background-color: #1A202C;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+    }
+
+    .chart-lightbox-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        background-color: #2D3748;
+        color: white;
+    }
+
+    .chart-lightbox-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding-right: 12px;
+    }
+
+    .chart-lightbox-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .chart-lightbox-body {
+        padding: 16px;
+        background-color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: auto;
+        max-height: 78vh;
+    }
+
+    .chart-lightbox-img {
+        max-width: 100%;
+        max-height: 74vh;
+        object-fit: contain;
+    }
+
+    .chart-lightbox-footer {
+        padding: 10px 20px;
+        background-color: #2D3748;
+        color: #A0AEC0;
+        font-size: 0.78rem;
+        text-align: center;
+    }
+
+    .spinner-sm {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 0.6s linear infinite;
+        vertical-align: middle;
+        margin-right: 4px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Support Materials Tabs */
+    .support-section {
+        border-top: 2px solid var(--dol-gray-300);
+        margin-top: 10px;
+    }
+
+    .support-nav {
+        display: flex;
+        background-color: var(--dol-gray-100);
+        border-bottom: 1px solid var(--dol-gray-300);
+        gap: 2px;
+        padding: 8px 12px 0 12px;
+    }
+
+    .support-tab-btn {
+        padding: 10px 16px;
+        border: 1px solid transparent;
+        border-bottom: none;
+        background: transparent;
+        color: var(--dol-gray-700);
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+        transition: all 0.15s ease;
+    }
+
+    .support-tab-btn:hover {
+        color: var(--dol-red);
+        background-color: rgba(229, 29, 36, 0.05);
+    }
+
+    .support-tab-btn.active {
+        background-color: var(--dol-white);
+        color: var(--dol-red);
+        border-color: var(--dol-gray-300);
+        position: relative;
+        bottom: -1px;
+    }
+
+    .support-content-area {
+        padding: 20px 24px;
+        background-color: var(--dol-white);
+        min-height: 220px;
+    }
+
+    .support-pane {
+        display: none;
+        font-size: 0.925rem;
+        line-height: 1.7;
+        color: var(--dol-gray-700);
+        white-space: pre-wrap;
+    }
+
+    .support-pane.active {
+        display: block;
+    }
+
+    .support-empty-notice {
+        color: var(--dol-gray-500);
+        font-style: italic;
+        padding: 20px;
+        text-align: center;
+        background-color: var(--dol-gray-100);
+        border-radius: var(--radius-md);
+    }
+
+    /* Right Column: Writing Editor & Submission Form */
+    .editor-form {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .editor-panel {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .editor-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--dol-gray-300);
+        background-color: var(--dol-gray-100);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .editor-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dol-gray-700);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .word-counter-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+    }
+
+    .target-hint {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--dol-gray-500);
+    }
+
+    .editor-body {
+        padding: 20px 24px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .essay-textarea {
+        width: 100%;
+        min-height: 480px;
+        padding: 18px;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        font-family: inherit;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        color: var(--dol-charcoal);
+        background-color: #FAFAFA;
+        resize: vertical;
+        outline: none;
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .essay-textarea:focus {
+        background-color: var(--dol-white);
+        border-color: var(--dol-red);
+        box-shadow: 0 0 0 3px rgba(229, 29, 36, 0.12);
+    }
+
+    .editor-footer {
+        padding: 16px 24px;
+        border-top: 1px solid var(--dol-gray-300);
+        background-color: var(--dol-gray-100);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .submit-notice {
+        font-size: 0.85rem;
+        color: var(--dol-gray-500);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Confirmation Modal */
+    .modal-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overscroll-behavior: contain;
+    }
+
+    .modal-backdrop.open {
+        display: flex;
+    }
+
+    .modal-dialog {
+        background-color: var(--dol-white);
+        border-radius: var(--radius-lg);
+        max-width: 520px;
+        width: 100%;
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        animation: modalFadeIn 0.2s ease;
+    }
+
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--dol-gray-300);
+        background-color: var(--dol-gray-100);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--dol-charcoal);
+    }
+
+    .modal-body {
+        padding: 24px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--dol-gray-700);
+    }
+
+    .modal-summary-box {
+        background-color: #F8FAFC;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        padding: 14px 18px;
+        margin-top: 14px;
+    }
+
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid var(--dol-gray-300);
+        background-color: var(--dol-gray-100);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="practice-workspace">
+        <!-- CỘT TRÁI: ĐỀ BÀI & NỘI DUNG HỖ TRỢ (UC-WRI-02) -->
+        <section class="prompt-panel" aria-label="Nội dung đề thi và gợi ý">
+            <div class="prompt-panel-header">
+                <div>
+                    {% if prompt.task_type == "TASK_1" %}
+                        <span class="badge badge-task1">Task 1</span>
+                    {% else %}
+                        <span class="badge badge-task2">Task 2</span>
+                    {% endif %}
+
+                    {% if prompt.level == "BEGINNER" %}
+                        <span class="badge badge-beginner">Beginner</span>
+                    {% elif prompt.level == "INTERMEDIATE" %}
+                        <span class="badge badge-intermediate">Intermediate</span>
+                    {% else %}
+                        <span class="badge badge-advanced">Advanced</span>
+                    {% endif %}
+
+                    {% if submission_count > 0 %}
+                        <span class="badge badge-done">Đã nộp {{ submission_count }} lần</span>
+                    {% endif %}
+                </div>
+                <h1 class="prompt-panel-title">{{ prompt.title }}</h1>
+            </div>
+
+            <div class="prompt-panel-body">
+                <!-- Nội dung yêu cầu đề bài -->
+                <div class="prompt-text-box">{{ prompt.prompt_text }}</div>
+
+                <!-- Hình ảnh minh họa đề bài nếu có (xử lý an toàn không ẩn khi lỗi) -->
+                {% if prompt.image_file %}
+                    <div class="prompt-image-container" id="prompt-image-wrapper">
+                        <div class="prompt-image-header">
+                            <span class="prompt-image-label">📊 Biểu đồ / Sơ đồ đề bài</span>
+                            <button type="button" class="btn btn-sm btn-outline" id="open-chart-zoom-btn" title="Phóng to hình ảnh để xem chi tiết số liệu">
+                                🔍 Phóng to biểu đồ
+                            </button>
+                        </div>
+                        <div class="prompt-image-view-box" id="chart-clickable-area" role="button" tabindex="0" title="Nhấp để phóng to biểu đồ" aria-label="Nhấp để phóng to biểu đồ">
+                            <img src="{{ prompt.image_file }}" alt="Minh họa đề bài Writing: {{ prompt.title }}" class="prompt-image" id="chart-main-img" onerror="handleChartImageError(this);">
+                            <span class="prompt-image-overlay-hint" id="chart-zoom-hint">🔍 Nhấp vào ảnh để xem kích thước lớn</span>
+                            <div id="chart-image-error-notice" class="chart-load-error" style="display: none;" role="alert">
+                                <div style="font-size: 1.6rem; margin-bottom: 6px;">📊⚠️</div>
+                                <div style="font-weight: 700; color: var(--dol-charcoal); margin-bottom: 4px;">Không thể tải hình ảnh biểu đồ / sơ đồ</div>
+                                <div style="font-size: 0.85rem; color: var(--dol-gray-700); margin-bottom: 12px; max-width: 440px; margin-left: auto; margin-right: auto;">
+                                    Đường dẫn hình ảnh không phản hồi. Thông tin đề bài Task 1 vẫn giữ nguyên và bài làm trong ô soạn thảo được bảo toàn.
+                                </div>
+                                <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-sm btn-outline" id="retry-chart-img-btn" onclick="retryChartImage(event);">
+                                        🔄 Thử tải lại ảnh
+                                    </button>
+                                    <a href="{{ prompt.image_file }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="text-decoration: none;">
+                                        Mở liên kết ảnh ↗
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- NỘI DUNG HỖ TRỢ (WritingSupport: Dàn ý, Bài mẫu, Từ vựng) -->
+            <div class="support-section">
+                <div class="support-nav" role="tablist">
+                    <button type="button" class="support-tab-btn active" role="tab" aria-selected="true" data-tab="outline">
+                        📋 Dàn ý gợi ý
+                    </button>
+                    <button type="button" class="support-tab-btn" role="tab" aria-selected="false" data-tab="sample">
+                        🌟 Bài mẫu tham khảo
+                    </button>
+                    <button type="button" class="support-tab-btn" role="tab" aria-selected="false" data-tab="vocabulary">
+                        📚 Từ vựng then chốt
+                    </button>
+                </div>
+
+                <div class="support-content-area">
+                    <!-- Tab 1: Dàn ý -->
+                    <div class="support-pane active" id="pane-outline" role="tabpanel">
+                        {% if support and support.outline_text %}
+                            {{ support.outline_text }}
+                        {% else %}
+                            <div class="support-empty-notice">
+                                Hiện chưa có gợi ý dàn ý cho đề bài này. Bạn hãy tự lập dàn ý trước khi viết nhé!
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tab 2: Bài mẫu -->
+                    <div class="support-pane" id="pane-sample" role="tabpanel">
+                        {% if support and support.sample_answer %}
+                            {{ support.sample_answer }}
+                        {% else %}
+                            <div class="support-empty-notice">
+                                Bài mẫu tham khảo đang được ban chuyên môn DOL biên soạn và sẽ sớm cập nhật.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tab 3: Từ vựng -->
+                    <div class="support-pane" id="pane-vocabulary" role="tabpanel">
+                        {% if support and support.suggested_vocabulary %}
+                            {{ support.suggested_vocabulary }}
+                        {% else %}
+                            <div class="support-empty-notice">
+                                Chưa có danh sách từ vựng gợi ý cho đề này.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CỘT PHẢI: FORM NỘP BÀI & TRÌNH SOẠN THẢO (UC-WRI-02 + UC-WRI-03) -->
+        <section class="editor-panel" aria-label="Khu vực viết bài">
+            <form id="writing-submit-form" class="editor-form" method="post" action="{% url 'writing:prompt_submit' prompt.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="submission_key" id="submission-key" value="{{ submission_key }}">
+
+                <div class="editor-header">
+                    <span class="editor-title">Bài làm của học viên</span>
+                    <div class="word-counter-badge" id="word-counter-display">
+                        <span>Số từ: <strong id="word-count" style="color: var(--dol-red);">0</strong></span>
+                        <span style="color: var(--dol-gray-300); margin: 0 4px;">|</span>
+                        <span style="font-size: 0.8rem; color: var(--dol-gray-600);"><strong id="char-count">0</strong> ký tự</span>
+                        <span class="target-hint" style="margin-left: 6px;">(Đề xuất: {{ target_words }}+ từ)</span>
+                    </div>
+                </div>
+
+                <div class="editor-body">
+                    {% if form.errors %}
+                        <div class="alert-error" role="alert">
+                            <strong>Lỗi nộp bài:</strong>
+                            {% for field, error_list in form.errors.items %}
+                                {% for error in error_list %}
+                                    <div>• {{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if db_error %}
+                        <div class="alert-error" role="alert">
+                            <strong>Lỗi hệ thống:</strong> {{ db_error }}
+                        </div>
+                    {% endif %}
+
+                    <textarea
+                        name="content"
+                        id="essay-editor"
+                        class="essay-textarea"
+                        placeholder="Bắt đầu viết bài của bạn tại đây... Hãy chú ý phân bổ thời gian và bố cục bài viết hợp lý theo chuẩn IELTS."
+                        spellcheck="false"
+                    >{{ draft_content|default:form.content.value|default:"" }}</textarea>
+                </div>
+
+                <div class="editor-footer">
+                    <div class="submit-notice">
+                        <span style="color: var(--dol-blue);">🔒</span>
+                        <span>Bài làm sẽ được lưu trữ an toàn và chuyển đến bước đánh giá.</span>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="open-submit-modal-btn"
+                    >
+                        Nộp bài →
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <!-- HỘP THOẠI XÁC NHẬN NỘP BÀI (Accessible Confirmation Modal) -->
+    <div class="modal-backdrop" id="submit-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">Xác nhận nộp bài Writing</h3>
+                <button type="button" class="btn btn-outline" id="close-modal-x-btn" style="padding: 4px 8px; border: none; font-size: 1.2rem;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn nộp bài viết này lên hệ thống không?</p>
+                <div class="modal-summary-box">
+                    <div><strong>Đề bài:</strong> {{ prompt.title }}</div>
+                    <div><strong>Dạng bài:</strong> {{ prompt.get_task_type_display }}</div>
+                    <div><strong>Số từ hiện tại:</strong> <span id="modal-word-count-val">0</span> từ (chuẩn đề xuất: {{ target_words }}+ từ)</div>
+                </div>
+                <p style="margin-top: 12px; font-size: 0.85rem; color: var(--dol-gray-500);">
+                    Lưu ý: Sau khi nộp, bài viết sẽ được lưu trữ vào lịch sử học tập cá nhân với trạng thái chờ chấm điểm.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="cancel-submit-modal-btn">
+                    Hủy / Viết tiếp
+                </button>
+                <button type="button" class="btn btn-primary" id="confirm-submit-btn">
+                    Xác nhận nộp bài
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HỘP THOẠI PHÓNG TO BIỂU ĐỒ (Accessible Chart Lightbox Modal) -->
+    {% if prompt.image_file %}
+    <div class="chart-lightbox-backdrop" id="chart-lightbox" role="dialog" aria-modal="true" aria-label="Xem biểu đồ kích thước lớn" style="display: none;">
+        <div class="chart-lightbox-container">
+            <div class="chart-lightbox-header">
+                <div class="chart-lightbox-title">
+                    <span>📊 {{ prompt.title }}</span>
+                </div>
+                <div class="chart-lightbox-actions">
+                    <a href="{{ prompt.image_file }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="color: white; border-color: rgba(255,255,255,0.4);">
+                        Mở tab mới ↗
+                    </a>
+                    <button type="button" class="btn btn-sm btn-primary" id="close-chart-lightbox-btn" aria-label="Đóng phóng to ảnh (Esc)">
+                        ✕ Đóng (Esc)
+                    </button>
+                </div>
+            </div>
+            <div class="chart-lightbox-body">
+                <img src="{{ prompt.image_file }}" alt="{{ prompt.title }}" class="chart-lightbox-img" id="lightbox-zoom-target">
+            </div>
+            <div class="chart-lightbox-footer">
+                <span>Nhấn <strong>Esc</strong> hoặc nhấp ra ngoài để đóng &bull; Phóng to giúp quan sát rõ chi tiết số liệu của đề bài</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Cờ kiểm soát nộp bài để tắt cảnh báo beforeunload khi submit thật
+        let isSubmitting = false;
+
+        // 1. Chuyển đổi Tabs nội dung hỗ trợ (Không làm mất nội dung trong Textarea)
+        const tabButtons = document.querySelectorAll(".support-tab-btn");
+        const tabPanes = document.querySelectorAll(".support-pane");
+
+        tabButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const targetTab = this.getAttribute("data-tab");
+
+                tabButtons.forEach(btn => {
+                    btn.classList.remove("active");
+                    btn.setAttribute("aria-selected", "false");
+                });
+                tabPanes.forEach(pane => {
+                    pane.classList.remove("active");
+                });
+
+                this.classList.add("active");
+                this.setAttribute("aria-selected", "true");
+
+                const targetPane = document.getElementById("pane-" + targetTab);
+                if (targetPane) {
+                    targetPane.classList.add("active");
+                }
+            });
+        });
+
+        // 2. Bộ đếm từ & ký tự Real-time phía Client (Vanilla JavaScript)
+        const editor = document.getElementById("essay-editor");
+        const wordCountDisplay = document.getElementById("word-count");
+        const charCountDisplay = document.getElementById("char-count");
+        const modalWordCountDisplay = document.getElementById("modal-word-count-val");
+
+        function countWords(text) {
+            if (!text) return 0;
+            const trimmed = text.trim();
+            if (!trimmed) return 0;
+            const words = trimmed.split(/\s+/);
+            return words.length;
+        }
+
+        function updateWordCount() {
+            if (!editor) return;
+            const text = editor.value;
+            const count = countWords(text);
+            const charCount = text.length;
+            if (wordCountDisplay) wordCountDisplay.textContent = count;
+            if (charCountDisplay) charCountDisplay.textContent = charCount;
+            if (modalWordCountDisplay) modalWordCountDisplay.textContent = count;
+        }
+
+        if (editor) {
+            editor.addEventListener("input", updateWordCount);
+            updateWordCount();
+        }
+
+        // 3. Quản lý Modal xác nhận nộp bài (UC-WRI-03)
+        const modalBackdrop = document.getElementById("submit-modal-backdrop");
+        const openModalBtn = document.getElementById("open-submit-modal-btn");
+        const cancelModalBtn = document.getElementById("cancel-submit-modal-btn");
+        const closeModalXBtn = document.getElementById("close-modal-x-btn");
+        const confirmSubmitBtn = document.getElementById("confirm-submit-btn");
+        const submitForm = document.getElementById("writing-submit-form");
+
+        function openModal() {
+            updateWordCount();
+            if (modalBackdrop) {
+                modalBackdrop.classList.add("open");
+                if (confirmSubmitBtn) confirmSubmitBtn.focus();
+            }
+        }
+
+        function closeModal() {
+            if (modalBackdrop) {
+                modalBackdrop.classList.remove("open");
+                if (editor) editor.focus();
+            }
+        }
+
+        if (openModalBtn) {
+            openModalBtn.addEventListener("click", function () {
+                if (editor && editor.value.trim().length === 0) {
+                    alert("Bạn chưa nhập nội dung bài viết. Hãy viết bài trước khi nộp!");
+                    editor.focus();
+                    return;
+                }
+                openModal();
+            });
+        }
+
+        if (cancelModalBtn) cancelModalBtn.addEventListener("click", closeModal);
+        if (closeModalXBtn) closeModalXBtn.addEventListener("click", closeModal);
+
+        if (modalBackdrop) {
+            modalBackdrop.addEventListener("click", function (e) {
+                if (e.target === modalBackdrop) closeModal();
+            });
+        }
+
+        // 4. Quản lý Lightbox phóng to biểu đồ (Image Lightbox)
+        const chartLightbox = document.getElementById("chart-lightbox");
+        const openChartZoomBtn = document.getElementById("open-chart-zoom-btn");
+        const chartClickableArea = document.getElementById("chart-clickable-area");
+        const closeChartLightboxBtn = document.getElementById("close-chart-lightbox-btn");
+
+        function openChartLightbox() {
+            if (chartLightbox) {
+                chartLightbox.style.display = "flex";
+                if (closeChartLightboxBtn) closeChartLightboxBtn.focus();
+            }
+        }
+
+        function closeChartLightbox() {
+            if (chartLightbox) {
+                chartLightbox.style.display = "none";
+                if (openChartZoomBtn) openChartZoomBtn.focus();
+            }
+        }
+
+        if (openChartZoomBtn) openChartZoomBtn.addEventListener("click", openChartLightbox);
+        if (chartClickableArea) {
+            chartClickableArea.addEventListener("click", openChartLightbox);
+            chartClickableArea.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openChartLightbox();
+                }
+            });
+        }
+        if (closeChartLightboxBtn) closeChartLightboxBtn.addEventListener("click", closeChartLightbox);
+
+        if (chartLightbox) {
+            chartLightbox.addEventListener("click", function (e) {
+                if (e.target === chartLightbox) closeChartLightbox();
+            });
+        }
+
+        // Xử lý an toàn khi biểu đồ lỗi (không ẩn vùng đề bài Task 1)
+        window.handleChartImageError = function(img) {
+            if (img) img.style.display = 'none';
+            const hint = document.getElementById('chart-zoom-hint');
+            if (hint) hint.style.display = 'none';
+            const errorBox = document.getElementById('chart-image-error-notice');
+            if (errorBox) errorBox.style.display = 'block';
+            const clickArea = document.getElementById('chart-clickable-area');
+            if (clickArea) clickArea.style.cursor = 'default';
+            const zoomBtn = document.getElementById('open-chart-zoom-btn');
+            if (zoomBtn) zoomBtn.style.display = 'none';
+        };
+
+        window.retryChartImage = function(e) {
+            if (e) e.stopPropagation();
+            const img = document.getElementById('chart-main-img');
+            const errorBox = document.getElementById('chart-image-error-notice');
+            const hint = document.getElementById('chart-zoom-hint');
+            const clickArea = document.getElementById('chart-clickable-area');
+            const zoomBtn = document.getElementById('open-chart-zoom-btn');
+            if (img) {
+                const baseSrc = '{{ prompt.image_file }}';
+                img.src = baseSrc + (baseSrc.indexOf('?') === -1 ? '?' : '&') + 't=' + new Date().getTime();
+                img.style.display = 'block';
+            }
+            if (errorBox) errorBox.style.display = 'none';
+            if (hint) hint.style.display = '';
+            if (clickArea) clickArea.style.cursor = 'zoom-in';
+            if (zoomBtn) zoomBtn.style.display = '';
+        };
+
+        // Bắt sự kiện phím Escape cho cả Submit Modal & Image Lightbox
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                if (chartLightbox && chartLightbox.style.display !== "none") {
+                    closeChartLightbox();
+                } else if (modalBackdrop && modalBackdrop.classList.contains("open")) {
+                    closeModal();
+                }
+            }
+        });
+
+        // 5. Xử lý Submit an toàn (Chống nộp đúp + vô hiệu hóa nút + Spinner)
+        if (confirmSubmitBtn && submitForm) {
+            confirmSubmitBtn.addEventListener("click", function () {
+                isSubmitting = true;
+                confirmSubmitBtn.disabled = true;
+                confirmSubmitBtn.innerHTML = '<span class="spinner-sm"></span> Đang nộp bài & chấm AI...';
+                if (cancelModalBtn) cancelModalBtn.disabled = true;
+                if (closeModalXBtn) closeModalXBtn.disabled = true;
+                if (openModalBtn) {
+                    openModalBtn.disabled = true;
+                    openModalBtn.textContent = "Đang xử lý...";
+                }
+
+                submitForm.submit();
+            });
+        }
+
+        // 6. Cảnh báo trước khi rời trang nếu bài viết chưa nộp có nội dung (beforeunload)
+        window.addEventListener("beforeunload", function (e) {
+            if (!isSubmitting && editor && editor.value.trim().length > 0) {
+                e.preventDefault();
+                e.returnValue = "Bạn có bài viết chưa lưu. Bạn có chắc chắn muốn rời khỏi trang không?";
+                return e.returnValue;
+            }
+        });
+    });
+</script>
+{% endblock %}

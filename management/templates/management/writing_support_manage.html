@@ -1,0 +1,504 @@
+{% extends "management/base_admin.html" %}
+
+{% block title %}Writing Support Materials{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dol-gray-900);
+    }
+
+    .page-subtitle {
+        font-size: 0.875rem;
+        color: var(--dol-gray-600);
+        margin-top: 2px;
+    }
+
+    .mode-badges {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .badge-edit-mode {
+        background-color: #FEF3C7;
+        color: #92400E;
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid #FCD34D;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-admin-only {
+        background-color: #FEE2E2;
+        color: var(--dol-red);
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid #FECACA;
+        letter-spacing: 0.5px;
+    }
+
+    /* 2-Column Split Layout matching Hình 44 */
+    .support-layout {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+        .support-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* CỘT TRÁI: Task Selector List */
+    .task-list-panel {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .task-list-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--dol-gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--dol-white);
+    }
+
+    .task-list-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--dol-gray-900);
+    }
+
+    .task-count-badge {
+        background-color: var(--dol-red-light);
+        color: var(--dol-red);
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+        border: 1px solid #FED7D7;
+    }
+
+    .task-search-box {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--dol-gray-200);
+        background-color: #F8FAFC;
+    }
+
+    .task-search-input {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        outline: none;
+    }
+
+    .task-search-input:focus {
+        border-color: var(--dol-red);
+    }
+
+    .task-scroll-area {
+        max-height: calc(100vh - 280px);
+        overflow-y: auto;
+    }
+
+    .task-item {
+        display: block;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--dol-gray-200);
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.15s ease;
+        border-radius: var(--radius-sm);
+    }
+
+    .task-item:hover {
+        background-color: #F8FAFC;
+    }
+
+    .task-item.active {
+        background-color: var(--dol-red-light);
+        outline: 2px solid var(--dol-red);
+        outline-offset: -2px;
+    }
+
+    .task-item-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--dol-gray-900);
+        margin-bottom: 6px;
+        line-height: 1.4;
+    }
+
+    .task-item-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: var(--dol-gray-600);
+    }
+
+    /* CỘT PHẢI: Editor Panel (Hình 44) */
+    .editor-panel {
+        background-color: var(--dol-white);
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .selected-task-box {
+        background-color: #F8FAFC;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--dol-gray-300);
+    }
+
+    .selected-task-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--dol-gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .selected-task-heading {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dol-gray-900);
+        margin-bottom: 8px;
+    }
+
+    .selected-task-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+    }
+
+    /* 3 Tabs Bar */
+    .tab-bar {
+        display: flex;
+        border-bottom: 1px solid var(--dol-gray-300);
+        background-color: var(--dol-white);
+        padding: 0 16px;
+    }
+
+    .tab-btn {
+        padding: 14px 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--dol-gray-600);
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+
+    .tab-btn:hover {
+        color: var(--dol-red);
+    }
+
+    .tab-btn.active {
+        color: var(--dol-red);
+        border-bottom-color: var(--dol-red);
+        background-color: var(--dol-white);
+    }
+
+    .tab-content-area {
+        padding: 24px;
+    }
+
+    .tab-pane-header {
+        margin-bottom: 16px;
+    }
+
+    .tab-pane-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--dol-gray-900);
+    }
+
+    .tab-pane-desc {
+        font-size: 0.85rem;
+        color: var(--dol-gray-600);
+        margin-top: 4px;
+    }
+
+    .font-monospace {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 14px;
+        border: 1px solid var(--dol-gray-300);
+        border-radius: var(--radius-md);
+        outline: none;
+        resize: vertical;
+        transition: border-color 0.15s;
+    }
+
+    .form-control:focus {
+        border-color: var(--dol-red);
+        box-shadow: 0 0 0 3px rgba(229, 29, 36, 0.1);
+    }
+
+    .editor-footer {
+        padding: 16px 24px;
+        background-color: #F8FAFC;
+        border-top: 1px solid var(--dol-gray-300);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .last-updated-text {
+        font-size: 0.8rem;
+        color: var(--dol-gray-600);
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb-bar">
+    <a href="{% url 'management:writing_prompt_list' %}">Admin</a>
+    <span class="breadcrumb-separator">/</span>
+    <strong>Support Materials</strong>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+    <div>
+        <h1 class="page-title">Writing Support Materials</h1>
+        <p class="page-subtitle">Quản lý kho nội dung hỗ trợ (Dàn ý, Bài mẫu, Từ vựng) gắn với từng đề IELTS Writing (UC-WRI-06)</p>
+    </div>
+    <div class="mode-badges">
+        <span class="badge-admin-only">ADMIN ONLY</span>
+        <span class="badge-edit-mode">EDIT MODE</span>
+    </div>
+</div>
+
+<div class="support-layout">
+    <!-- CỘT TRÁI: DANH SÁCH ĐỀ (Hình 44) -->
+    <div class="task-list-panel">
+        <div class="task-list-header">
+            <span class="task-list-title">Existing Writing tasks</span>
+            <span class="task-count-badge">{{ prompts|length }} TASKS</span>
+        </div>
+
+        <div class="task-search-box">
+            <form method="get" action="">
+                <input type="text" name="q" value="{{ search_q }}" placeholder="Search tasks..." class="task-search-input" aria-label="Tìm kiếm đề để sửa nội dung hỗ trợ">
+            </form>
+        </div>
+
+        <div class="task-scroll-area">
+            {% for p in prompts %}
+            <a href="{% url 'management:writing_support_manage' p.id %}{% if search_q %}?q={{ search_q }}{% endif %}" class="task-item {% if p.id == selected_prompt.id %}active{% endif %}">
+                <div class="task-item-title">{{ p.title }}</div>
+                <div class="task-item-meta">
+                    <span style="font-family: monospace; font-weight: 600;">#WT-{{ p.id|stringformat:"03d" }}</span>
+                    <span>&middot;</span>
+                    {% if p.task_type == 'TASK_1' %}
+                    <span class="badge badge-task1" style="font-size: 0.7rem; padding: 1px 6px;">Task 1</span>
+                    {% else %}
+                    <span class="badge badge-task2" style="font-size: 0.7rem; padding: 1px 6px;">Task 2</span>
+                    {% endif %}
+                    <span>&middot;</span>
+                    {% if p.status == 'PUBLISHED' %}
+                    <span class="badge badge-visible" style="font-size: 0.7rem; padding: 1px 6px;">Visible</span>
+                    {% else %}
+                    <span class="badge badge-hidden" style="font-size: 0.7rem; padding: 1px 6px;">Hidden</span>
+                    {% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <div style="padding: 24px; text-align: center; color: var(--dol-gray-600); font-size: 0.85rem;">
+                Không có đề Writing nào phù hợp.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- CỘT PHẢI: TRÌNH BIÊN TẬP NỘI DUNG HỖ TRỢ (Hình 44) -->
+    <div class="editor-panel">
+        {% if selected_prompt %}
+        <div class="selected-task-box">
+            <div class="selected-task-label">Selected Task</div>
+            <div class="selected-task-heading">
+                #WT-{{ selected_prompt.id|stringformat:"03d" }} &middot; {{ selected_prompt.title }}
+            </div>
+            <div class="selected-task-meta">
+                {% if selected_prompt.task_type == 'TASK_1' %}
+                <span class="badge badge-task1">Task 1</span>
+                {% else %}
+                <span class="badge badge-task2">Task 2</span>
+                {% endif %}
+                <span class="badge badge-level">
+                    {% if selected_prompt.level == 'BEGINNER' %}Band 5-6
+                    {% elif selected_prompt.level == 'INTERMEDIATE' %}Band 6-7
+                    {% elif selected_prompt.level == 'ADVANCED' %}Band 7-8+
+                    {% else %}{{ selected_prompt.get_level_display }}{% endif %}
+                </span>
+                {% if selected_prompt.status == 'PUBLISHED' %}
+                <span class="badge badge-visible">Đang hiển thị cho học viên</span>
+                {% else %}
+                <span class="badge badge-hidden">Đang ẩn đối với học viên</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" id="support-editor-form">
+            {% csrf_token %}
+
+            <!-- 3 Tabs Navigation -->
+            <div class="tab-bar" role="tablist">
+                <button type="button" class="tab-btn active" id="tab-btn-outline" role="tab" aria-selected="true" onclick="switchTab('outline')">
+                    &#128221; Essay Outline
+                </button>
+                <button type="button" class="tab-btn" id="tab-btn-sample" role="tab" aria-selected="false" onclick="switchTab('sample')">
+                    &#128214; Sample Answer
+                </button>
+                <button type="button" class="tab-btn" id="tab-btn-vocab" role="tab" aria-selected="false" onclick="switchTab('vocab')">
+                    &#128218; Suggested Vocabulary
+                </button>
+            </div>
+
+            <div class="tab-content-area">
+                <!-- TAB 1: ESSAY OUTLINE -->
+                <div class="tab-pane" id="pane-outline">
+                    <div class="tab-pane-header">
+                        <h2 class="tab-pane-title">Essay Outline (Gợi ý dàn ý)</h2>
+                        <p class="tab-pane-desc">
+                            Cung cấp dàn bài có cấu trúc rõ ràng (Mở bài, Thân bài 1, Thân bài 2, Kết bài) để hướng dẫn học viên phát triển ý logic.
+                        </p>
+                    </div>
+                    {{ form.outline_text }}
+                    {% if form.outline_text.errors %}
+                    <p style="color: var(--dol-red); font-size: 0.8rem; margin-top: 4px;">{{ form.outline_text.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- TAB 2: SAMPLE ANSWER -->
+                <div class="tab-pane" id="pane-sample" style="display: none;">
+                    <div class="tab-pane-header">
+                        <h2 class="tab-pane-title">Sample Answer (Bài viết mẫu)</h2>
+                        <p class="tab-pane-desc">
+                            Bài viết mẫu hoàn chỉnh đạt tiêu chuẩn Band cao để học viên tham khảo cấu trúc ngữ pháp, từ vựng và cách lập luận.
+                        </p>
+                    </div>
+                    {{ form.sample_answer }}
+                    {% if form.sample_answer.errors %}
+                    <p style="color: var(--dol-red); font-size: 0.8rem; margin-top: 4px;">{{ form.sample_answer.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- TAB 3: SUGGESTED VOCABULARY -->
+                <div class="tab-pane" id="pane-vocab" style="display: none;">
+                    <div class="tab-pane-header">
+                        <h2 class="tab-pane-title">Suggested Vocabulary (Từ vựng gợi ý)</h2>
+                        <p class="tab-pane-desc">
+                            Danh sách từ vựng học thuật, collocation và cụm từ theo chủ đề kèm định nghĩa tiếng Việt để học viên vận dụng vào bài viết.
+                        </p>
+                    </div>
+                    {{ form.suggested_vocabulary }}
+                    {% if form.suggested_vocabulary.errors %}
+                    <p style="color: var(--dol-red); font-size: 0.8rem; margin-top: 4px;">{{ form.suggested_vocabulary.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="editor-footer">
+                <div class="last-updated-text">
+                    {% if support and support.updated_at %}
+                    Cập nhật lần cuối: {{ support.updated_at|date:"d/m/Y H:i" }}
+                    {% else %}
+                    Chưa lưu nội dung hỗ trợ cho đề này
+                    {% endif %}
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'management:writing_support_manage' selected_prompt.id %}" class="btn btn-secondary">
+                        Hủy thay đổi (Cancel)
+                    </a>
+                    <button type="submit" class="btn btn-primary" id="btn-save-support">
+                        Lưu thay đổi (Save Changes)
+                    </button>
+                </div>
+            </div>
+        </form>
+        {% else %}
+        <div style="padding: 48px; text-align: center; color: var(--dol-gray-600);">
+            <h3>Chưa có đề Writing nào để quản lý nội dung hỗ trợ</h3>
+            <p style="margin-top: 8px;">Vui lòng thêm đề Writing trước.</p>
+            <a href="{% url 'management:writing_prompt_create' %}" class="btn btn-primary" style="margin-top: 16px;">
+                + Thêm đề Writing
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchTab(tabName) {
+        // Hide all panes
+        document.getElementById('pane-outline').style.display = 'none';
+        document.getElementById('pane-sample').style.display = 'none';
+        document.getElementById('pane-vocab').style.display = 'none';
+
+        // Deactivate all tab buttons
+        document.getElementById('tab-btn-outline').classList.remove('active');
+        document.getElementById('tab-btn-outline').setAttribute('aria-selected', 'false');
+        document.getElementById('tab-btn-sample').classList.remove('active');
+        document.getElementById('tab-btn-sample').setAttribute('aria-selected', 'false');
+        document.getElementById('tab-btn-vocab').classList.remove('active');
+        document.getElementById('tab-btn-vocab').setAttribute('aria-selected', 'false');
+
+        // Activate selected tab
+        if (tabName === 'outline') {
+            document.getElementById('pane-outline').style.display = 'block';
+            document.getElementById('tab-btn-outline').classList.add('active');
+            document.getElementById('tab-btn-outline').setAttribute('aria-selected', 'true');
+        } else if (tabName === 'sample') {
+            document.getElementById('pane-sample').style.display = 'block';
+            document.getElementById('tab-btn-sample').classList.add('active');
+            document.getElementById('tab-btn-sample').setAttribute('aria-selected', 'true');
+        } else if (tabName === 'vocab') {
+            document.getElementById('pane-vocab').style.display = 'block';
+            document.getElementById('tab-btn-vocab').classList.add('active');
+            document.getElementById('tab-btn-vocab').setAttribute('aria-selected', 'true');
+        }
+    }
+</script>
+{% endblock %}
